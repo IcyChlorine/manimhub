@@ -1,3 +1,7 @@
 example_scenes.py
 
 /.vscode/
+
+*.code-workspace
+
+/__pycache__/
