@@ -1,10 +1,13 @@
-from typing import Union
-
 from manimlib import *
-# 由于_AnimationBuilder不在默认的import范围中，因此必须explicitly import一下
+# 由于_AnimationBuilder不在manimlib默认的import范围中
+# 因此必须explicitly import一下
 from manimlib.mobject.mobject import _AnimationBuilder
 
+# 注意manimlib在更新boolean_ops之后也有了一个Union，因此import的时候要注意
+from typing import Union
+
 # 从package内部import的话要采用这样的语法
+# 参考https://stackoverflow.com/questions/16981921/relative-imports-in-python-3
 from manimhub.constants import *
 
 class StarskyScene(InteractiveScene):
