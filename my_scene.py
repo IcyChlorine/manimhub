@@ -15,7 +15,7 @@ class StarskyScene(InteractiveScene):
 		# override the add of base class a bit
 		# so it returns mobjects being added,
 		# which is very handy for syntax like this: m=self.add(Circle())
-		super().add(new_mobjects)
+		super().add(*new_mobjects)
 		if len(new_mobjects)==1:
 			return new_mobjects[0]
 		else:
