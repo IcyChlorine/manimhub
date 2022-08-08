@@ -1,7 +1,8 @@
 example_scenes.py
+playground.py
 
 /.vscode/
-
 *.code-workspace
 
-/__pycache__/
+__pycache__/
+*.pyc
