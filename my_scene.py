@@ -4,13 +4,23 @@ from manimlib import *
 from manimlib.mobject.mobject import _AnimationBuilder
 
 # 注意manimlib在更新boolean_ops之后也有了一个Union，因此import的时候要注意
-from typing import Union
+from typing import Union,List
 
 # 从package内部import的话要采用这样的语法
 # 参考https://stackoverflow.com/questions/16981921/relative-imports-in-python-3
 from manimhub.constants import *
 
 class StarskyScene(InteractiveScene):
+	def add(self, *new_mobjects: Mobject) -> Union[Mobject, List[Mobject]]: 
+		# override the add of base class a bit
+		# so it returns mobjects being added,
+		# which is very handy for syntax like this: m=self.add(Circle())
+		super().add(new_mobjects)
+		if len(new_mobjects)==1:
+			return new_mobjects[0]
+		else:
+			return new_mobjects
+
 	def wait(self, time_or_speech: Union[float, str]):
 		if isinstance(time_or_speech, float) or isinstance(time_or_speech, int):
 			time=time_or_speech
