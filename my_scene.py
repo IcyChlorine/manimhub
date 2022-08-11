@@ -21,12 +21,12 @@ class StarskyScene(InteractiveScene):
 		else:
 			return new_mobjects
 
-	def wait(self, time_or_speech: Union[float, str]):
+	def wait(self, time_or_speech: Union[float, str]=1):
 		if isinstance(time_or_speech, float) or isinstance(time_or_speech, int):
 			time=time_or_speech
 		else: 
 			time=len(time_or_speech)/CH_PER_SEC
-		return super.wait(time)
+		return super().wait(time)
 
 	def narrate(self, words:str):
 		self.wait(words)
