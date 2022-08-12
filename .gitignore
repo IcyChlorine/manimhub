@@ -1,6 +1,9 @@
 example_scenes.py
 playground.py
 
+*.mp4
+*.png
+
 /.vscode/
 *.code-workspace
 
