@@ -157,7 +157,7 @@ class StarskyScene(InteractiveScene):
 			log.warning("Called Scene.play with no animations")
 			return
 		animations = self._compile_animations(*play_args, **animation_config)
-		print(animations)
+		#print(animations)
 		self.begin_animations(animations)
 		self.progress_through_animations(animations)
 		self.finish_animations(animations)
