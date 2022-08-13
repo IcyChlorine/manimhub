@@ -3,7 +3,8 @@ from manimlib import *
 class LittleCreature(SVGMobject):
 	CONFIG = {
 		'flipped': False,
-		'mood': 'plain'
+		'mood': 'plain',
+		'looking_dir': OUT
 	}
 	def __init__(self, mood='plain', flipped=False, **kwargs):
 		super().__init__(f'LittleCreature_{mood}.svg', **kwargs)
@@ -28,6 +29,9 @@ class LittleCreature(SVGMobject):
 		# 因此这里得重设一次
 		self.flipped=False
 		if flipped: self.flip()
+
+		self.look(self.looking_dir)
+
 	def _name_parts(self):
 		self.body=self[0]
 		self.mouth=self[1]
@@ -45,7 +49,8 @@ class LittleCreature(SVGMobject):
 		return self
 
 	def change_mood(self, new_mood):
-		new_self=LittleCreature(new_mood, flipped=self.flipped)
+		new_self=LittleCreature(new_mood, flipped=self.flipped, looking_dir=self.looking_dir)
+		new_self.look(self.looking_dir)
 		new_self.move_to(self)
 		new_self.match_height(self)
 		self.become(new_self)
@@ -61,4 +66,46 @@ class LittleCreature(SVGMobject):
 			ret+=sub.get_shader_wrapper_list()
 		return ret
 
-		
+	# related to eye contact
+	def look(self,dir=OUT):
+		print('in look()!')
+		dir=dir.copy()
+		#计算单位向量
+		dir/=np.linalg.norm(dir) 
+		self.looking_dir=dir
+
+		dir_xy=dir.copy(); dir_xy[2]=0.0 #平面上的投影
+		EYE_MOV_DIS=0.075
+		self.eyes[0].move_to(self.eye_anchors[0]).shift(dir_xy*EYE_MOV_DIS)
+		self.eyes[1].move_to(self.eye_anchors[1]).shift(dir_xy*EYE_MOV_DIS)
+		return self
+
+	def look_at(self, point_or_mobject):
+		#计算视线方向
+		眉心=(self.eyes[0].get_center()+self.eyes[1].get_center())/2
+		if isinstance(point_or_mobject, Mobject):
+			mobj=point_or_mobject
+			point=mobj.get_center()
+		else:
+			point=point_or_mobject
+		dir=point-眉心
+		return self.look(dir)
+	
+	def make_eye_contact(self):
+		return self.look(OUT)
+
+	def interpolate(self, mobject1: VMobject, mobject2: VMobject, alpha: float, *args, **kwargs):
+		ret = super().interpolate(mobject1, mobject2, alpha, *args, **kwargs)
+		# interpolate custom attributes correctly.
+		self.looking_dir = interpolate(
+			mobject1.looking_dir,
+			mobject2.looking_dir,
+			alpha
+		)
+		return ret
+
+	def copy(self, deep: bool = False):
+		ret = super().copy(deep)
+		# remake refs, which is screwed up during super().copy().
+		ret._name_parts()
+		return ret

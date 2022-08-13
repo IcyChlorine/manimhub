@@ -17,9 +17,10 @@ class TestLittleCreature(StarskyScene):
 		#s.w=s.add(LittleCreature(mood='plain'))
 		#s.w=s.add(LittleCreature(mood='plain').shift(UL))
 		s.w=s.add(LittleCreature(mood='plain',flipped=True).shift(UL))
-
-		s.save_state()
 		
+		s.update_frame()
+		s.save_state()
+
 	def reset(self):
 		self.restore_state(self.undo_stack[0])
 		self.update_frame()
@@ -35,8 +36,39 @@ class TestLittleCreature(StarskyScene):
 			s.play(w.change_mood,'happy')
 			s.pause()	
 			s.reset()
+	def test_eye_contact(s):
+		w=s.w
+		while True:
+			s.pause()
+			s.play(w.look,RIGHT)
+			s.pause()
+			s.play(w.look,UL*10)
+			s.pause()
+			s.play(w.look_at,ORIGIN)
+			s.pause()
+			s.play(w.make_eye_contact)
+
+	def test_comprehensive(s):
+		w=s.w
+		while True:
+			s.pause()
+			s.play(w.look,RIGHT)
+			s.pause()
+			s.play(w.change_mood,'smile')
+			s.pause()
+			s.play(w.shift,RIGHT*3)
+			s.pause()
+			s.play(w.make_eye_contact)
+			s.pause()
+			s.play(w.change_mood,'surprised')
+			s.pause()
+			s.reset()
+			
 
 	def construct(self) -> None:
 		w=self.w
-		self.embed()
+		#self.test_mood()
+		#self.test_eye_contact()
+		self.test_comprehensive()
+		#self.embed()
 
