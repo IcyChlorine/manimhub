@@ -35,13 +35,6 @@ class LittleCreature(SVGMobject):
 		self.eye_anchors=self[4:6]
 		self.hands=self[6:8]
 
-	#def flip(self, **kwargs):
-		#for sub in self:
-		#	sub.reverse_points()
-		#super().flip()
-		#self.rotate(TAU / 2, UP, **kwargs)
-		#self.flipped=not self.flipped
-		#return self
 	def flip(self, axis: np.ndarray = UP, **kwargs):
 		self.flipped=not self.flipped
 		return super().flip(axis, **kwargs)
@@ -53,9 +46,8 @@ class LittleCreature(SVGMobject):
 
 	def change_mood(self, new_mood):
 		new_self=LittleCreature(new_mood, flipped=self.flipped)
-		#new_self.move_to(self)
-		#new_self.match_height(self)
-		#new_self.match_style(self)
+		new_self.move_to(self)
+		new_self.match_height(self)
 		self.become(new_self)
 		return self
 
