@@ -56,17 +56,8 @@ class LittleCreature(SVGMobject):
 		self.become(new_self)
 		return self
 
-	# some little magic.
-	def get_shader_wrapper_list(self):
-		# SVGMobject默认会返回两个shader_wrapper, one for fill and one for stroke
-		# 导致所有子路径的fill和stroke分别被一块渲染了，上下层的stroke会相交，无法正确显示重叠关系
-		# 因此这里重写这一方法，返回所有sub/son的shader_wrapper，这样每个路径就会分开渲染。
-		ret=[]
-		for sub in self:
-			ret+=sub.get_shader_wrapper_list()
-		return ret
+	# Related to eye contact.
 
-	# related to eye contact
 	def look(self,dir=OUT):
 		print('in look()!')
 		dir=dir.copy()
@@ -93,6 +84,17 @@ class LittleCreature(SVGMobject):
 	
 	def make_eye_contact(self):
 		return self.look(OUT)
+
+	# Magic overrides that fix things.
+
+	def get_shader_wrapper_list(self):
+		# SVGMobject默认会返回两个shader_wrapper, one for fill and one for stroke
+		# 导致所有子路径的fill和stroke分别被一块渲染了，上下层的stroke会相交，无法正确显示重叠关系
+		# 因此这里重写这一方法，返回所有sub/son的shader_wrapper，这样每个路径就会分开渲染。
+		ret=[]
+		for sub in self:
+			ret+=sub.get_shader_wrapper_list()
+		return ret
 
 	def interpolate(self, mobject1: VMobject, mobject2: VMobject, alpha: float, *args, **kwargs):
 		ret = super().interpolate(mobject1, mobject2, alpha, *args, **kwargs)
