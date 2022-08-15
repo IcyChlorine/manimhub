@@ -59,7 +59,6 @@ class LittleCreature(SVGMobject):
 	# Related to eye contact.
 
 	def look(self,dir=OUT):
-		print('in look()!')
 		dir=dir.copy()
 		#计算单位向量
 		dir/=np.linalg.norm(dir) 
@@ -85,6 +84,15 @@ class LittleCreature(SVGMobject):
 	def make_eye_contact(self):
 		return self.look(OUT)
 
+	# used for Blink animation.
+	def _blink(self):
+		eyes=self.eyes
+		eye_bottom_y = eyes.get_bottom()[1]
+		eyes.apply_function(
+			lambda p: [p[0], eye_bottom_y+(p[1]-eye_bottom_y)/20, p[2]]
+		)
+		return self
+
 	# Magic overrides that fix things.
 
 	def get_shader_wrapper_list(self):
@@ -108,6 +116,18 @@ class LittleCreature(SVGMobject):
 
 	def copy(self, deep: bool = False):
 		ret = super().copy(deep)
-		# remake refs, which is screwed up during super().copy().
+		# remake refs, which is screwed up by the previous super().copy().
 		ret._name_parts()
 		return ret
+
+class Blink(ApplyMethod):
+	CONFIG = {
+		# param ref: Fast: 0.2, Medium: 0.3, Slow: 0.4
+		'run_time': 0.3,
+		'rate_func': there_and_back
+	}
+	def __init__(self, w: LittleCreature, **kwargs):
+		super().__init__(w._blink, **kwargs)
+	def finish(self) -> None:
+		super().finish()
+		self.interpolate(0)
