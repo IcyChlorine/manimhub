@@ -3,10 +3,12 @@ from manimlib import *
 
 # 为了能从父级目录import需要被测试的对象
 import sys
+
 __module_path__ = 'C:\\StarSky\\Programming\\MyProjects\\'
 sys.path.append(__module_path__)
 from manimhub.my_scene import StarskyScene
 from manimhub.little_creature import LittleCreature
+from manimhub.little_creature import Blink
 
 class TestLittleCreature(StarskyScene):
 	def pause(self):
@@ -15,7 +17,7 @@ class TestLittleCreature(StarskyScene):
 		super().setup()
 
 		#s.w=s.add(LittleCreature(mood='plain'))
-		#s.w=s.add(LittleCreature(mood='plain').shift(UL))
+		s.w=s.add(LittleCreature(mood='plain').shift(UL))
 		s.w=s.add(LittleCreature(mood='plain',flipped=True).shift(UL))
 		
 		s.update_frame()
@@ -64,11 +66,19 @@ class TestLittleCreature(StarskyScene):
 			s.pause()
 			s.reset()
 			
+	def test_blink(s):
+		w=s.w
+		while True:
+			s.pause()
+			s.play(Blink(w))
 
 	def construct(self) -> None:
 		w=self.w
+
 		#self.test_mood()
 		#self.test_eye_contact()
-		self.test_comprehensive()
-		#self.embed()
+		#self.test_comprehensive()
+		self.test_blink()
+
+		self.embed()
 
