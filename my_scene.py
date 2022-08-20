@@ -11,16 +11,6 @@ from typing import Union,List
 from manimhub.constants import *
 
 class StarskyScene(InteractiveScene):
-	def add(self, *new_mobjects: Mobject) -> Union[Mobject, List[Mobject]]: 
-		# override the add of base class a bit
-		# so it returns mobjects being added,
-		# which is very handy for syntax like this: m=self.add(Circle())
-		super().add(*new_mobjects)
-		if len(new_mobjects)==1:
-			return new_mobjects[0]
-		else:
-			return new_mobjects
-
 	def wait(self, time_or_speech: Union[float, str]=1):
 		if isinstance(time_or_speech, float) or isinstance(time_or_speech, int):
 			time=time_or_speech
