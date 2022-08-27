@@ -106,6 +106,9 @@ class StarskyScene(InteractiveScene):
 			anim = compile_method(state)
 			animations.append(anim)
 
+		for animation in animations:
+			animation.update_config(**kwargs)
+			
 		return animations
 
 	# 由于装饰器好像不能从父类继承，
