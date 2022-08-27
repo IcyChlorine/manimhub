@@ -40,7 +40,6 @@ class StarskyScene(InteractiveScene):
 		}
 
 		def compile_method(state):
-			print('in compile_method')
 			if state["curr_method"] is None:
 				return
 			mobject = state["curr_method"].__self__
@@ -81,7 +80,6 @@ class StarskyScene(InteractiveScene):
 			# There're three type of cases: 
 			# e.g. (m.shift, UP), m.animate.shift(UP), ApplyMethod(m.shift,UP)
 			if inspect.ismethod(arg):
-				print('new `curr_method`.')
 				state["curr_method"] = arg
 			elif isinstance(arg, Animation): 
 				anim = arg
@@ -91,7 +89,6 @@ class StarskyScene(InteractiveScene):
 				animations.append(anim)
 			# animation arguments
 			elif state["curr_method"]:
-				print('appending new arg.')
 				state["method_args"].append(arg)
 			# error proning
 			elif isinstance(arg, Mobject):
@@ -108,7 +105,7 @@ class StarskyScene(InteractiveScene):
 
 		for animation in animations:
 			animation.update_config(**kwargs)
-			
+
 		return animations
 
 	# 由于装饰器好像不能从父类继承，
