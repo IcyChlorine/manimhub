@@ -6,6 +6,7 @@ playground.py
 
 /.vscode/
 *.code-workspace
+/.VSCodeCounter/
 
 __pycache__/
 *.pyc
