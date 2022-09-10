@@ -1,6 +1,7 @@
 import copy
 import inspect
-import sys
+import os,sys
+import importlib
 
 from manimlib.config import get_custom_config
 from manimlib.logger import log
@@ -31,8 +32,6 @@ def is_child_scene(obj, module):
 		return False
 	return True
 
-
-
 def get_scene_config(config):
 	return dict([
 		(key, config[key])
@@ -49,7 +48,6 @@ def get_scene_config(config):
 			"presenter_mode",
 		]
 	])
-
 
 def compute_total_frames(scene_class, scene_config):
 	"""
@@ -70,6 +68,16 @@ def compute_total_frames(scene_class, scene_config):
 	total_time = pre_scene.time - pre_scene.skip_time
 	return int(total_time * scene_config["camera_config"]["fps"])
 
+def get_module(filename):
+	"Get module from the given filename by import"
+	if filename is None:
+		return None
+
+	module_name = filename.replace(os.sep, ".").replace(".py", "")
+	spec = importlib.util.spec_from_file_location(module_name, filename)
+	module = importlib.util.module_from_spec(spec)
+	spec.loader.exec_module(module)
+	return module
 
 def get_scenes_to_render(scene_classes, scene_config, config):
 	if config["write_all"]:

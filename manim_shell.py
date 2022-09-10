@@ -61,60 +61,70 @@ def query_yn(prompt, default_val=True) -> bool:
 def main():
 	print(f"ManimShell \033[32mv{__shell_version__}\033[0m")
 
+	# The pipeline here is:
+	# <args> ---> args --+--> filename ---> module ---> scene_classes ---> scene_class
+	#                    |                                                   v
+	#                    +--> config --------+--------> scene_config ----> scene
+	#                                        |
+	#                                        +--------> other usages
+
 	args = manimlib.config.parse_cli()
 	if args.version and args.file is None:
 		return
 	if args.log_level:
 		manimlib.logger.log.setLevel(args.log_level)
+	config = manimhub.config.get_configuration(args)
 
-	if args.config:
-		manimlib.utils.init_config.init_customization()
-	else:
-		first_run = False # TODO: get rid of this stuff
-		window = None
-		daemon = None
-		while True:
-			config = manimhub.config.get_configuration(args)
-			#scenes = manimlib.extract_scene.main(config)
-			scene_class_candidates = manimhub.extract_scene.get_scene_classes_from_module(config['module'])
-			scene_config = manimhub.extract_scene.get_scene_config(config)
-			scene_class = manimhub.extract_scene.get_scene_class(scene_class_candidates, config)
-			
-			scene = scene_class(window=window, **scene_config)
+	first_run = False # TODO: get rid of this stuff
+	window = None
+	daemon = None
+	while True:
+		# module is reloaded everytime so that changes to src can be relected
+		module = manimhub.extract_scene.get_module(args.file)
+		scene_class_candidates = manimhub.extract_scene.get_scene_classes_from_module(module)
+		scene_config = manimhub.extract_scene.get_scene_config(config)
+		scene_class = manimhub.extract_scene.get_scene_class(scene_class_candidates, config)
+		
+		# AHA! Finally we get the Scene instance.
+		scene = scene_class(window=window, **scene_config)
 
-			def inject_func():
-				scene._src_file_updated=True
-			
-			daemon = FileModifiedDaemon(os.getcwd()+os.sep+args.file, inject_func)
-			daemon.start()
-			
-			try:
-				ret = scene.run()
-			except Exception as e:
-				err_type, err_val, err_trb = sys.exc_info()
-				pretty_errors.excepthook(err_type, err_val, err_trb)
+		# init daemon thread that checks for changes in src file
+		def inject_func():
+			scene._src_file_updated=True
+		
+		daemon = FileModifiedDaemon(os.getcwd()+os.sep+args.file, inject_func)
+		daemon.start()
+		
+		# run the scene and try to handle exceptions
+		try:
+			ret = scene.run()
+		except Exception as e:
+			# use package `pretty_errors` to print more readable traceback info
+			err_type, err_val, err_trb = sys.exc_info()
+			pretty_errors.excepthook(err_type, err_val, err_trb)
 
-				print('') # new line
-				opt = query_yn('An exception has occurred. Restart the scene or not?')
-				if opt==False: 
-					if not daemon is None: daemon.stop()
-					break
-				else: ret = RESTART_SCENE
-
-			daemon.stop()
-			if ret != RESTART_SCENE: 
+			print('') # new line
+			opt = query_yn('An exception has occurred. Restart the scene or not?')
+			if opt==False: 
+				if not daemon is None: daemon.stop()
 				break
-			if scene.is_window_closing():
-				break
+			else: ret = RESTART_SCENE
 
-			# reuse window if possible
-			# this will save a lot of time on window destroying and creating
-			first_run = False
-			window = scene.window
-			window.clear()
+		# aftermath
+		daemon.stop()
+		if ret != RESTART_SCENE: 
+			break
+		if scene.is_window_closing():
+			break
 
-			# known issues: some subtle issue with keyboard quit(q or esc) and embed().
-			# not unbearable, but still annoying though.
+		# reuse window if possible
+		# this will save a lot of time on window destroying and creating
+		first_run = False
+		window = scene.window
+		window.clear()
+
+		# known issues: some subtle issue with keyboard quit(q or esc) and embed().
+		# not unbearable, but still annoying though.
 
 
 if __name__ == "__main__":
