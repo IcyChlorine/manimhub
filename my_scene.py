@@ -10,6 +10,9 @@ from typing import Union,List
 # 参考https://stackoverflow.com/questions/16981921/relative-imports-in-python-3
 from manimhub.constants import *
 
+class RestartScene(Exception):
+	pass
+
 class StarskyScene(Scene):
 	def wait(self, time_or_speech: Union[float, str]=1):
 		if isinstance(time_or_speech, float) or isinstance(time_or_speech, int):
@@ -151,3 +154,38 @@ class StarskyScene(Scene):
 		self.begin_animations(animations)
 		self.progress_through_animations(animations)
 		self.finish_animations(animations)
+
+
+	def _should_restart(self):
+		if hasattr(self,'_src_file_updated') and self._src_file_updated:
+			return True
+		return False
+	def update_frame(self, dt: float = 0, ignore_skipping: bool = False) -> None:
+		if self._should_restart(): 
+			raise RestartScene()
+			
+		return super().update_frame(dt, ignore_skipping)
+
+
+	def run(self) -> int:
+		self.virtual_animation_start_time: float = 0
+		self.real_animation_start_time: float = time.time()
+		self.file_writer.begin()
+
+		self.setup()
+		try:
+			self.construct()
+			self.interact()
+		except EndScene:
+			return END_SCENE
+		except RestartScene:
+			return RESTART_SCENE
+		except KeyboardInterrupt:
+			# Get rid keyboard interupt symbols
+			print("", end="\r")
+			self.file_writer.ended_with_interrupt = True
+		self.tear_down()
+
+	#def on_close(self) -> None:
+	#	raise EndScene()
+
