@@ -3,6 +3,12 @@ from manimlib import *
 # 因此必须explicitly import一下
 from manimlib.mobject.mobject import _AnimationBuilder
 
+import sys
+if sys.platform == 'win32':
+	import win32gui, win32con
+else:
+	log.info('OS platform is not windows, some window manipulation based on Win32 API will not work.')
+
 # 注意manimlib在更新boolean_ops之后也有了一个Union，因此import的时候要注意
 from typing import Union,List
 
@@ -14,6 +20,95 @@ class RestartScene(Exception):
 	pass
 
 class StarskyScene(Scene):
+	def __init__(self, window = None, **kwargs):
+		digest_config(self, kwargs)
+		if self.preview:
+			from manimlib.window import Window
+			if window is None:
+				self.window = Window(scene=self, **self.window_config)
+			else:
+				self.window = window
+				#TODO: fix window.scene dependent stuff in window, if any
+				window.scene=self
+
+			self.set_window_on_top() # put the window on top by default
+
+			self.camera_config["ctx"] = self.window.ctx
+			self.camera_config["fps"] = 30  # Where's that 30 from?
+			self.undo_stack = []
+			self.redo_stack = []
+		else:
+			self.window = None
+		
+
+		self.camera: Camera = self.camera_class(**self.camera_config)
+		self.file_writer = SceneFileWriter(self, **self.file_writer_config)
+		self.mobjects: list[Mobject] = [self.camera.frame]
+		self.id_to_mobject_map: dict[int, Mobject] = dict()
+		self.num_plays: int = 0
+		self.time: float = 0
+		self.skip_time: float = 0
+		self.original_skipping_status: bool = self.skip_animations
+		self.checkpoint_states: dict[str, list[tuple[Mobject, Mobject]]] = dict()
+
+		if self.start_at_animation_number is not None:
+			self.skip_animations = True
+		if self.file_writer.has_progress_display:
+			self.show_animation_progress = False
+
+		# Items associated with interaction
+		self.mouse_point = Point()
+		self.mouse_drag_point = Point()
+		self.hold_on_wait = self.presenter_mode
+		self.inside_embed = False
+		self.quit_interaction = False
+
+		# Much nicer to work with deterministic scenes
+		if self.random_seed is not None:
+			random.seed(self.random_seed)
+			np.random.seed(self.random_seed)
+
+		# always show animation progress
+		self.show_animation_progress = True 
+		
+	def set_window_on_top(self, on_top=True):
+		if sys.platform != 'win32':
+			return self
+		if not self.preview:
+			log.info("Not in preview mode, no window to be hanbled.")
+			return self
+		if not hasattr(self.window,'hwnd'):
+			all_hwnd = []
+			win32gui.EnumWindows(lambda hwnd, param: param.append(hwnd), all_hwnd)
+			all_wc_names = [win32gui.GetClassName(hwnd) for hwnd in all_hwnd]
+			#wc for window class
+
+			wnd_title = str(self) #see manimlib.window
+			hwnd = 0
+			for wc_name in all_wc_names:
+				hwnd = win32gui.FindWindow(wc_name, wnd_title)
+				if hwnd!=0: break
+		
+			if hwnd==0: 
+				log.warning("Can't find hWnd for window. Later window operation is aborted.")
+				return self #no window is found, indicating manim is writing to file
+			#TODO: is this conclusion reliable?
+
+			self.window.hwnd=hwnd #cache hwnd for potential later usage
+
+
+		left, top, right, bottom = win32gui.GetWindowRect(self.window.hwnd)
+
+		#use Win32 API to make the mgl window always on top, facilitating further coding.
+		win32gui.SetWindowPos(
+			self.window.hwnd, 
+			win32con.HWND_TOPMOST if on_top else win32con.HWND_NOTOPMOST,
+			left, top, right-left, bottom-top, #leave the window pos and size unchanged
+			0 #uFlags, which we don't bother here
+		)
+
+		return self
+
 	def wait(self, time_or_speech: Union[float, str]=1):
 		if isinstance(time_or_speech, float) or isinstance(time_or_speech, int):
 			time=time_or_speech
