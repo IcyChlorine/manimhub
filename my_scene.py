@@ -23,6 +23,9 @@ class StarskyScene(Scene):
 				self.window = window
 				#TODO: fix window.scene dependent stuff in window, if any
 				window.scene=self
+
+			self.set_window_on_top() # put the window on top by default
+
 			self.camera_config["ctx"] = self.window.ctx
 			self.camera_config["fps"] = 30  # Where's that 30 from?
 			self.undo_stack = []
@@ -57,13 +60,10 @@ class StarskyScene(Scene):
 			random.seed(self.random_seed)
 			np.random.seed(self.random_seed)
 
-		# new ones
-		self.set_window_on_top()
-
 		# always show animation progress
 		self.show_animation_progress = True 
 		
-	def set_window_on_top(self):
+	def set_window_on_top(self, on_top=True):
 		all_hwnd = []
 		win32gui.EnumWindows(lambda hwnd, param: param.append(hwnd), all_hwnd)
 		all_wc_names = [win32gui.GetClassName(hwnd) for hwnd in all_hwnd]
@@ -83,7 +83,7 @@ class StarskyScene(Scene):
 		#use Win32 API to make the mgl window always on top, facilitating further coding.
 		win32gui.SetWindowPos(
 			hwnd, 
-			win32con.HWND_TOPMOST, 
+			win32con.HWND_TOPMOST if on_top else win32con.HWND_NOTOPMOST,
 			left, top, right-left, bottom-top, #leave the window pos and size unchanged
 			0 #uFlags, which we don't bother here
 		)
