@@ -7,7 +7,7 @@ class LittleCreature(SVGMobject):
 		'looking_dir': OUT
 	}
 	def __init__(self, mood='plain', flipped=False, **kwargs):
-		super().__init__(f'LittleCreature_{mood}.svg', **kwargs)
+		super().__init__(f'assets/LittleCreature_{mood}.svg', **kwargs)
 		
 		self._name_parts()
 

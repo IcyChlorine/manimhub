@@ -18,7 +18,7 @@ class TestLittleCreature(StarskyScene):
 
 		#s.w=s.add(LittleCreature(mood='plain'))
 		s.w=s.add(LittleCreature(mood='plain').shift(UL))
-		s.w=s.add(LittleCreature(mood='plain',flipped=True).shift(UL))
+		s.w=s.add(LittleCreature(mood='plain',flipped=True).shift(UR))
 		
 		s.update_frame()
 		s.save_state()
