@@ -3,7 +3,11 @@ from manimlib import *
 # 因此必须explicitly import一下
 from manimlib.mobject.mobject import _AnimationBuilder
 
-import win32gui, win32con
+import sys
+if sys.platform == 'win32':
+	import win32gui, win32con
+else:
+	log.info('OS platform is not windows, some window manipulation based on Win32 API will not work.')
 
 # 注意manimlib在更新boolean_ops之后也有了一个Union，因此import的时候要注意
 from typing import Union,List
@@ -65,6 +69,8 @@ class StarskyScene(Scene):
 		self.show_animation_progress = True 
 		
 	def set_window_on_top(self, on_top=True):
+		if sys.platform != 'win32':
+			return self
 		if not self.preview:
 			log.info("Not in preview mode, no window to be hanbled.")
 			return self
