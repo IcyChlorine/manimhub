@@ -10,7 +10,7 @@ from typing import Union,List
 # 参考https://stackoverflow.com/questions/16981921/relative-imports-in-python-3
 from manimhub.constants import *
 
-class StarskyScene(InteractiveScene):
+class StarskyScene(Scene):
 	def wait(self, time_or_speech: Union[float, str]=1):
 		if isinstance(time_or_speech, float) or isinstance(time_or_speech, int):
 			time=time_or_speech
