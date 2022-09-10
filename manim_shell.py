@@ -46,6 +46,17 @@ class FileModifiedDaemon(threading.Thread):
 		self.should_stop=True
 		self.join()
 
+def query_yn(prompt, default_val=True) -> bool:
+	assert(type(default_val)==bool)
+	prompt = prompt + '' + ('[y]/n' if default_val else 'y/[n]') + ' '
+	opt=''
+	while not (opt in ['y','n']): 
+		opt = input(prompt)
+		if opt=='': opt = 'y' if default_val else 'n'
+		if opt in (['y','n']): break
+
+	return opt=='y'
+
 
 def main():
 	print(f"ManimShell \033[32mv{__shell_version__}\033[0m")
@@ -61,6 +72,7 @@ def main():
 	else:
 		first_run = False # TODO: get rid of this stuff
 		window = None
+		daemon = None
 		while True:
 			config = manimhub.config.get_configuration(args)
 			#scenes = manimlib.extract_scene.main(config)
@@ -76,7 +88,19 @@ def main():
 			daemon = FileModifiedDaemon(os.getcwd()+os.sep+args.file, inject_func)
 			daemon.start()
 			
-			ret = scene.run()
+			try:
+				ret = scene.run()
+			except Exception as e:
+				err_type, err_val, err_trb = sys.exc_info()
+				pretty_errors.excepthook(err_type, err_val, err_trb)
+
+				print('') # new line
+				opt = query_yn('An exception has occurred. Restart the scene or not?')
+				if opt==False: 
+					if not daemon is None: daemon.stop()
+					break
+				else: ret = RESTART_SCENE
+
 			daemon.stop()
 			if ret != RESTART_SCENE: 
 				break
