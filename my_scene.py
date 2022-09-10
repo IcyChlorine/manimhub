@@ -32,6 +32,7 @@ class StarskyScene(Scene):
 			self.redo_stack = []
 		else:
 			self.window = None
+		
 
 		self.camera: Camera = self.camera_class(**self.camera_config)
 		self.file_writer = SceneFileWriter(self, **self.file_writer_config)
@@ -64,31 +65,39 @@ class StarskyScene(Scene):
 		self.show_animation_progress = True 
 		
 	def set_window_on_top(self, on_top=True):
-		all_hwnd = []
-		win32gui.EnumWindows(lambda hwnd, param: param.append(hwnd), all_hwnd)
-		all_wc_names = [win32gui.GetClassName(hwnd) for hwnd in all_hwnd]
-		#wc for window class
+		if not self.preview:
+			log.info("Not in preview mode, no window to be hanbled.")
+			return self
+		if not hasattr(self.window,'hwnd'):
+			all_hwnd = []
+			win32gui.EnumWindows(lambda hwnd, param: param.append(hwnd), all_hwnd)
+			all_wc_names = [win32gui.GetClassName(hwnd) for hwnd in all_hwnd]
+			#wc for window class
 
-		wnd_title = str(self) #see manimlib.window
-		hwnd = 0
-		for wc_name in all_wc_names:
-			hwnd = win32gui.FindWindow(wc_name, wnd_title)
-			if hwnd!=0: break
+			wnd_title = str(self) #see manimlib.window
+			hwnd = 0
+			for wc_name in all_wc_names:
+				hwnd = win32gui.FindWindow(wc_name, wnd_title)
+				if hwnd!=0: break
 		
-		if hwnd==0: return #no window is found, indicating manim is writing to file
-		#TODO: is this conclusion reliable?
+			if hwnd==0: 
+				log.warning("Can't find hWnd for window. Later window operation is aborted.")
+				return self #no window is found, indicating manim is writing to file
+			#TODO: is this conclusion reliable?
 
-		left, top, right, bottom = win32gui.GetWindowRect(hwnd)
+			self.window.hwnd=hwnd #cache hwnd for potential later usage
+
+
+		left, top, right, bottom = win32gui.GetWindowRect(self.window.hwnd)
 
 		#use Win32 API to make the mgl window always on top, facilitating further coding.
 		win32gui.SetWindowPos(
-			hwnd, 
+			self.window.hwnd, 
 			win32con.HWND_TOPMOST if on_top else win32con.HWND_NOTOPMOST,
 			left, top, right-left, bottom-top, #leave the window pos and size unchanged
 			0 #uFlags, which we don't bother here
 		)
 
-		self.window.hwnd=hwnd #cache hwnd for further usage
 		return self
 
 	def wait(self, time_or_speech: Union[float, str]=1):
