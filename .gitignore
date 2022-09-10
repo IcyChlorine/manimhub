@@ -1,12 +1,19 @@
+# changeable files
 example_scenes.py
 playground.py
 
+# media files
+/cache/
+/images/
+/videos/
 *.mp4
 *.png
 
+# IDE (vscode) related
 /.vscode/
 *.code-workspace
 /.VSCodeCounter/
 
+# python cache
 __pycache__/
 *.pyc
