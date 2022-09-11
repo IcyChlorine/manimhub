@@ -290,7 +290,18 @@ class SelectionBox(SurroundingRectangle):
 			self.rescale_to_fit(length+buff,dim,stretch=True)
 		return self
 
-
+# ManimStudio is an interactive scene that helps dev and debugging.
+# Currently supported functionality:
+#  - select (via ↑↓←→ keys)
+#  - show boundingbox
+#  - show points [VMobject only]
+#  - show triangulation (preview ver.) [VMobject only]
+#  - show info label during operation above
+# Note: 
+#  - Except select, the latter operations don't support keypress interaction, 
+#      and are supposed to be accessed in embed()
+#  - ManimStudio override update_frame() for its own reason, so it doesn't 
+#      support manim_shell usage currently.
 class ManimStudio(Scene):
 	def __init__(self, **kwargs):
 		super().__init__(**kwargs)
