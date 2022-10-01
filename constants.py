@@ -19,6 +19,8 @@ ANNOT_COLOR = ANNOTATION_COLOR # alias
 楷体='KaiTi'
 宋体='NSimSun'
 微软雅黑='Microsoft YaHei UI'
+落霞孤鹜='LXGW Wenkai'
+文楷=落霞孤鹜 #alias
 
 END_SCENE = 0
 RESTART_SCENE = 1
