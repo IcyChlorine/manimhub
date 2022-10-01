@@ -79,12 +79,22 @@ def main():
 	window = None
 	daemon = None
 	while True:
-		# module is reloaded everytime so that changes to src can be relected
-		module = manimhub.extract_scene.get_module(args.file)
-		scene_class_candidates = manimhub.extract_scene.get_scene_classes_from_module(module)
-		scene_config = manimhub.extract_scene.get_scene_config(config)
-		scene_class = manimhub.extract_scene.get_scene_class(scene_class_candidates, config)
-		
+		try:
+			# module is reloaded everytime so that changes to src can be relected
+			module                 = manimhub.extract_scene.get_module(args.file)
+			scene_class_candidates = manimhub.extract_scene.get_scene_classes_from_module(module)
+			scene_config           = manimhub.extract_scene.get_scene_config(config)
+			scene_class            = manimhub.extract_scene.get_scene_class(scene_class_candidates, config)
+		except Exception:
+			# use package `pretty_errors` to print more readable traceback info
+			err_type, err_val, err_trb = sys.exc_info()
+			pretty_errors.excepthook(err_type, err_val, err_trb)
+
+			print('') # new line
+			opt = query_yn('An exception has occurred during importing. Restart or not?')
+			if opt: continue
+			else: break
+
 		# AHA! Finally we get the Scene instance.
 		scene = scene_class(window=window, **scene_config)
 
