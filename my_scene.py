@@ -10,7 +10,7 @@ else:
 	log.info('OS platform is not windows, some window manipulation based on Win32 API will not work.')
 
 # 注意manimlib在更新boolean_ops之后也有了一个Union，因此import的时候要注意
-from typing import Union,Optional
+from typing import Union,Optional,Iterable
 
 # 从package内部import的话要采用这样的语法
 # 参考https://stackoverflow.com/questions/16981921/relative-imports-in-python-3
@@ -35,6 +35,9 @@ class StarskyScene(Scene):
 
 			self.camera_config["ctx"] = self.window.ctx
 			self.camera_config["fps"] = 30  # Where's that 30 from?
+			if 'size' in self.window_config.keys():
+				self.camera_config["pixel_width"]=self.window_config['size'][0]
+				self.camera_config["pixel_height"]=self.window_config['size'][1]
 			self.undo_stack = []
 			self.redo_stack = []
 		else:
@@ -108,16 +111,6 @@ class StarskyScene(Scene):
 		)
 
 		return self
-
-	def wait(self, time_or_speech: Union[float, str]=1):
-		if isinstance(time_or_speech, float) or isinstance(time_or_speech, int):
-			time=time_or_speech
-		else: 
-			time=len(time_or_speech)/CH_PER_SEC
-		return super().wait(time)
-
-	def narrate(self, words:str):
-		self.wait(words)
 
 	def _compile_animations(self, *args, **kwargs):
 		"""
@@ -231,9 +224,9 @@ class StarskyScene(Scene):
 			if should_write:
 				self.file_writer.end_animation()
 
-			if self.skip_animations and self.window is not None:
+			#if self.skip_animations and self.window is not None:
 				# Show some quick frames along the way
-				self.update_frame(dt=0, ignore_skipping=True)
+				#self.update_frame(dt=0, ignore_skipping=True)
 
 			self.num_plays += 1
 		return wrapper
@@ -246,9 +239,44 @@ class StarskyScene(Scene):
 			return
 		animations = self._compile_animations(*play_args, **animation_config)
 		#print(animations)
-		self.begin_animations(animations)
+		self.begin_animations(animations, add_mobjects = animation_config.get('add_mobjects',True))
 		self.progress_through_animations(animations)
 		self.finish_animations(animations)
+
+	def begin_animations(self, animations: Iterable[Animation], add_mobjects=True) -> None:
+		for animation in animations:
+			animation.begin()
+			# Anything animated that's not already in the
+			# scene gets added to the scene.  Note, for
+			# animated mobjects that are in the family of
+			# those on screen, this can result in a restructuring
+			# of the scene.mobjects list, which is usually desired.
+			if add_mobjects and (animation.mobject not in self.mobjects):
+				self.add(animation.mobject)
+
+	#一些小小的魔改
+	#不知道能不能行
+	@handle_play_like_call
+	def wait(self, duration_or_speech: Union[float, str]=1):
+		if isinstance(duration_or_speech, float) or isinstance(duration_or_speech, int):
+			duration=duration_or_speech
+		else: 
+			duration=len(duration_or_speech)/CH_PER_SEC
+
+		stop_condition=None
+		time_progression = self.get_wait_time_progression(duration, stop_condition)
+		last_t = 0
+		for t in time_progression:
+			dt = t - last_t
+			last_t = t
+			self.update_frame(dt)
+			self.emit_frame()
+
+		self.refresh_static_mobjects()
+		return self
+
+	def narrate(self, words:str):
+		self.wait(words)
 
 
 	def _should_restart(self):
