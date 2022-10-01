@@ -318,6 +318,31 @@ class SelectionBox(SurroundingRectangle):
 			self.rescale_to_fit(length+buff,dim,stretch=True)
 		return self
 
+# current issue: can't effectively align characters
+# as there're up and down antenne of different chars(e.g. h g)
+# NOTE: this is intended to be used as mobj labels in ManimStudio
+#       below - at least currently.
+ascii_cache=[] # empty stuff at beginning
+class AsciiText(VGroup):
+	'''By restricting content to ASCII characters, we can cache the chars
+	and allow for a quick and dirty usage.'''
+	def __init__(self, text):
+		super().__init__()
+		for c in text:
+			if not ord(c)<128: raise ValueError("Only ASCII characters are allowed!")
+		global ascii_cache
+		if len(ascii_cache)==0: #generate cache
+			ascii_cache = [
+				(Text(chr(c), font_size=25) if  32<=c<=127 else None) # 有一些控制字符无法渲染
+				for c in range(128)
+			]
+		for c in text:
+			self.add(ascii_cache[ord(c)].copy())
+			self.submobjects
+
+		self.arrange(RIGHT, buff=0.03)
+		
+
 # ManimStudio is an interactive scene that helps dev and debugging.
 # Currently supported functionality:
 #  - select (via ↑↓←→ keys)
@@ -460,7 +485,7 @@ class ManimStudio(Scene):
 			same_type_mobjs=[m for m in self.get_mobject_family_members() if type(m)==type(mobj)]
 			description+=' #'+str(same_type_mobjs.index(mobj))	
 
-			info_label=Text(description,font_size=25)
+			info_label=AsciiText(description)
 			info_label.next_to(mobj,UP,SMALL_BUFF)
 			info_label.align_to(mobj,LEFT)
 			info_label.shift_onto_screen()
