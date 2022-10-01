@@ -52,7 +52,17 @@ def visualize_lagged():
 	plt.plot(X*2,Y,label='lagged(t=1,T=1,linear)')
 	plt.legend();plt.grid();plt.show()
 
+def visualize_linear_easeio():
+	for ξ in [0.1,0.3,0.49]:
+		X=np.linspace(0,1,100)
+		f=linear_ease_io(ξ)
+		Y=[f(x) for x in X]
+		plt.plot(X,Y,label=f'easeio, $\\xi$={ξ}')
+
+	plt.legend();plt.grid();plt.show()
+
 #visualize_partial()
 #visualize_braking_end()
 #visualize_emphasize()
-visualize_lagged()
+#visualize_lagged()
+visualize_linear_easeio()
