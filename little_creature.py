@@ -53,6 +53,7 @@ class LittleCreature(SVGMobject):
 		new_self.look(self.looking_dir)
 		new_self.move_to(self)
 		new_self.match_height(self)
+		new_self.set_color(self.body.get_fill_color())
 		self.become(new_self)
 		return self
 
