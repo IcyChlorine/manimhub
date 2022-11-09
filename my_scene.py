@@ -112,6 +112,29 @@ class StarskyScene(Scene):
 
 		return self
 
+	def add(self, *new_mobjects: Mobject, reorganize=True) -> Union[Mobject,  Iterable[Mobject]]:
+		"""
+		Mobjects will be displayed, from background to
+		foreground in the order with which they are added.
+		"""
+		if not reorganize: 
+			all_sm = self.get_mobject_family_members()
+			new_mobjects = list(filter(lambda m: not m in all_sm, new_mobjects))
+			if new_mobjects == []: return
+			
+		self.remove(*new_mobjects)
+		self.mobjects += new_mobjects
+		self.id_to_mobject_map.update({
+			id(sm): sm
+			for m in new_mobjects
+			for sm in m.get_family()
+		})
+
+		# Return the mobjects being added.
+		# so handy that I add it here. (starsky)
+		if len(new_mobjects)==1: return new_mobjects[0]
+		else: return new_mobjects
+
 	def _compile_animations(self, *args, **kwargs):
 		"""
 		Each arg can either be an animation, or a mobject method
@@ -239,11 +262,11 @@ class StarskyScene(Scene):
 			return
 		animations = self._compile_animations(*play_args, **animation_config)
 		#print(animations)
-		self.begin_animations(animations, add_mobjects = animation_config.get('add_mobjects',True))
+		self.begin_animations(animations, reorganize_mobjects = animation_config.get('reorganize_mobjects',True))
 		self.progress_through_animations(animations)
 		self.finish_animations(animations)
 
-	def begin_animations(self, animations: Iterable[Animation], add_mobjects=True) -> None:
+	def begin_animations(self, animations: Iterable[Animation], reorganize_mobjects=True) -> None:
 		for animation in animations:
 			animation.begin()
 			# Anything animated that's not already in the
@@ -251,8 +274,7 @@ class StarskyScene(Scene):
 			# animated mobjects that are in the family of
 			# those on screen, this can result in a restructuring
 			# of the scene.mobjects list, which is usually desired.
-			if add_mobjects and (animation.mobject not in self.mobjects):
-				self.add(animation.mobject)
+			self.add(animation.mobject, reorganize = reorganize_mobjects)
 
 	#一些小小的魔改
 	#不知道能不能行
