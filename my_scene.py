@@ -254,7 +254,6 @@ class StarskyScene(Scene):
 			self.num_plays += 1
 		return wrapper
 
-	#def play(self, *args, **kwargs):
 	@handle_play_like_call
 	def play(self, *play_args, **animation_config):
 		if len(play_args) == 0:
@@ -300,17 +299,16 @@ class StarskyScene(Scene):
 	def narrate(self, words:str):
 		self.wait(words)
 
-
 	def _should_restart(self):
 		if hasattr(self,'_src_file_updated') and self._src_file_updated:
 			return True
 		return False
+
 	def update_frame(self, dt: float = 0, ignore_skipping: bool = False) -> None:
 		if self._should_restart(): 
 			raise RestartScene()
 			
 		return super().update_frame(dt, ignore_skipping)
-
 
 	def run(self) -> int:
 		self.virtual_animation_start_time: float = 0

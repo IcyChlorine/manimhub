@@ -80,7 +80,7 @@ def main():
 	daemon = None
 	while True:
 		try:
-			# module is reloaded everytime so that changes to src can be relected
+			# module is reloaded everytime so that changes to src can be reflected
 			module                 = manimhub.extract_scene.get_module(args.file)
 			scene_class_candidates = manimhub.extract_scene.get_scene_classes_from_module(module)
 			scene_config           = manimhub.extract_scene.get_scene_config(config)
