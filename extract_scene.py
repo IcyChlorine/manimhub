@@ -115,6 +115,9 @@ def get_scenes_to_render(scene_classes, scene_config, config):
 		result.append(scene)
 	return result
 
+def get_input():
+	print('msh> ', end='')
+	return input()
 
 def get_scene_class(scene_class_candidates, config):
 	'''Get the scene class required from scene_class_candidates
@@ -131,25 +134,35 @@ def get_scene_class(scene_class_candidates, config):
 
 	Modified from get_scenes_to_render(..) by StarSky.
 	'''
-	#if config["write_all"]: #ignore config about write
-	#	return [sc(**scene_config) for sc in scene_classes]
+	
 
 	if len(config['scene_names'])>0:
-		scene_name = config["scene_names"][0] # get only one scene and ignore other ones
-		for scene_class in scene_class_candidates:
-			if scene_class.__name__ == scene_name:
-				return scene_class
-		log.error(f"No scene named {scene_name} found")
-		raise Exception()
-		
-	# no scene_name is specified in config['scene_names']
-	elif len(scene_class_candidates) == 1:
-		return scene_class_candidates[0]
+		# get only one scene and ignore other ones
+		scene_name = config["scene_names"][0] 
 	else:
-		log.error(f"There're multiple scenes in the file. Plz specify one!")
-		raise Exception()
-
-
+		# no scene specified AND only one scene in the code file
+		if len(scene_class_candidates)==1:
+			print(f'Scene {scene_class_candidates[0].__name__} is selected.')
+			return scene_class_candidates[0]
+		else:
+			scene_name = get_input()
+	
+	while True:
+		potential_sc = list(filter(
+			lambda clz: clz.__name__.lower().startswith(scene_name.lower()),
+			scene_class_candidates
+		))
+		
+		if len(potential_sc)==0:
+			print(f"No scene named {scene_name} found, plz try again.")
+			scene_name = get_input()
+		elif len(potential_sc)>1:
+			print('\t'.join(map(lambda clz: clz.__name__, potential_sc)))
+			scene_name = get_input()
+		else:
+			print(f'Scene {potential_sc[0].__name__} is selected.')
+			return potential_sc[0]
+	
 def get_scene_classes_from_module(module):
 	if hasattr(module, "SCENES_IN_ORDER"):
 		return module.SCENES_IN_ORDER

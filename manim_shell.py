@@ -63,8 +63,8 @@ def main():
 
 	# The pipeline here is:
 	# <args> ---> args --+--> filename ---> module ---> scene_classes ---> scene_class
-	#                    |                                                   v
-	#                    +--> config --------+--------> scene_config ----> scene
+	#                    |                                                      v
+	#                    +--> config --------+--------> scene_config ----> [[ scene ]]
 	#                                        |
 	#                                        +--------> other usages
 
@@ -81,10 +81,10 @@ def main():
 	while True:
 		try:
 			# module is reloaded everytime so that changes to src can be reflected
-			module                 = manimhub.extract_scene.get_module(args.file)
-			scene_class_candidates = manimhub.extract_scene.get_scene_classes_from_module(module)
-			scene_config           = manimhub.extract_scene.get_scene_config(config)
-			scene_class            = manimhub.extract_scene.get_scene_class(scene_class_candidates, config)
+			module        = manimhub.extract_scene.get_module(args.file)
+			sc_candidates = manimhub.extract_scene.get_scene_classes_from_module(module)
+			scene_config  = manimhub.extract_scene.get_scene_config(config)
+			scene_class   = manimhub.extract_scene.get_scene_class(sc_candidates, config)
 		except Exception:
 			# use package `pretty_errors` to print more readable traceback info
 			err_type, err_val, err_trb = sys.exc_info()
