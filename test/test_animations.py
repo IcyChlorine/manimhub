@@ -12,7 +12,8 @@ class TestPopup(StarskyScene):
 		os.system('pause')
 	def reset_scene(self):
 		self.restore_state(self.undo_stack[0]);self.update_frame()
-	def construct(self) -> None:
+
+	def test_popup(self):
 		self.save_state()
 		c=Circle()
 		while True:
@@ -20,6 +21,30 @@ class TestPopup(StarskyScene):
 			self.pause()
 			self.reset_scene()
 			self.pause()
+	def test_counter_example(self):
+		# test a possible bug related to extrapolate
+		NR_DOTS = 3
+		dots = VGroup(*[Dot() for i in range(NR_DOTS)]).arrange(RIGHT)
+		self.add(dots)
+		while True:
+			self.play(
+				ApplyMethod(dots[0].shift, UP, time_span=[0,0.5]),
+				ApplyMethod(dots[1].shift, UP, time_span=[0.5,1]),
+				ApplyMethod(dots[2].shift, UP, time_span=[1,1.5]),
+				run_time=1.5
+			); self.add(dots)
+			self.pause()
+			self.play(AnimationGroup(
+				ApplyMethod(dots[0].shift, DOWN),
+				ApplyMethod(dots[1].shift, DOWN),
+				ApplyMethod(dots[2].shift, DOWN),
+				lag_ratio=0.7
+			))
+			self.pause()
+			self.reset_scene()
+			self.pause()
+	def construct(self) -> None:
+		self.test_counter_example()
 
 # Debug 用
 class PointsTracker(VGroup):
