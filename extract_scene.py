@@ -120,15 +120,10 @@ def get_input():
 	return input()
 
 def get_scene_class(scene_class_candidates, config):
-	'''Get the scene class required from scene_class_candidates
-	according to config['scene_names']. Only the first scene class 
-	required is processed, the rest are ignored.
-
-	IF scene class is specified in config['scene_names'] BUT not
-	found in scene_class_candidates, an error will be raised.
-	IF there're only ONE scene class in scene_class_candidates
-	and NO s.c. is specified in config['scene_names'], this s.c. 
-	will be returned as a default result.
+	'''Get the scene class from scene_class_candidates.
+	If config['scene_names'] is specified, try to select the
+	first scene specified. Otherwise, hint user to select
+	a scene through command line.
 
 	All write-to-file related config are ignored, for the time being.
 
@@ -161,6 +156,8 @@ def get_scene_class(scene_class_candidates, config):
 			scene_name = get_input()
 		else:
 			print(f'Scene {potential_sc[0].__name__} is selected.')
+			# update config
+			config['scene_names']=[potential_sc[0].__name__]
 			return potential_sc[0]
 	
 def get_scene_classes_from_module(module):
