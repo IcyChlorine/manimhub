@@ -4,6 +4,7 @@ import sys
 import os
 import threading
 import time
+import winsound
 
 __shell_version__='0.1'
 
@@ -109,6 +110,9 @@ def main():
 		try:
 			ret = scene.run()
 		except Exception as e:
+			# Beep to hint that an error has occurred
+			winsound.Beep(440, 500)
+			
 			# use package `pretty_errors` to print more readable traceback info
 			err_type, err_val, err_trb = sys.exc_info()
 			pretty_errors.excepthook(err_type, err_val, err_trb)
