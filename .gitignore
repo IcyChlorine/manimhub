@@ -17,3 +17,7 @@ playground.py
 # python cache
 __pycache__/
 *.pyc
+
+# files that are not meant to be kept track of
+roadmap.md
+devlog.md
