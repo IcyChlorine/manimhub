@@ -115,17 +115,26 @@ class TestDataAxes(StarskyScene):
 	def test_axes_1(self) -> None:
 		axes = DataAxes(axis_align_towards_zero=True, x_range=[-4,4])
 		self.add(axes)
-		#axes.add_axis_labels()
+		axes.add_axis_labels()
+
 		self.play(axes.animate.set_range('x',[-2,6]), recursive=True)
 		self.play(axes.animate.set_all_ranges([-8,0],[-8,-2]), recursive=True)
 		self.play(axes.animate.set_all_ranges([-4,4],[-3,3]), recursive=True)
 		#TODO: 更完善的测试用例
 
-		#self.play(axes.shift, RIGHT, recursive=True)
+		self.play(axes.shift, RIGHT, recursive=True)
 
 	def test_axes_2(self):
-		#TODO: 更完善的测试用例
-		raise NotImplementedError()
+		axes = DataAxes(
+			axis_align_towards_zero=True, 
+			x_range=[-4,4], width=6, 
+			y_range=[-4,4], height=6, 
+		)
+		axes.add_axis_labels()
+		self.add(axes)
+		self.play(axes.animate.set_range(XDIM,[-5,-1]),recursive=True)
+		self.play(axes.animate.set_range(XDIM,[-4,+4]),recursive=True)
+		
 
 	def test_plot(self) -> None:
 		decimal_number_config = {"num_decimal_places": 1}
@@ -148,9 +157,9 @@ class TestDataAxes(StarskyScene):
 				axes.y_axis.set_range,-2,4, recursive=True)
 
 	def construct(self) -> None:
-		#self.test_axes_1()
+		self.test_axes_1()
 		#self.test_axes_2()
-		self.test_plot()
+		#self.test_plot()
 
 		#self.embed()
 		

@@ -566,11 +566,7 @@ class DataAxis(VGroup):
 	# plt style API
 	def lim(self, min, max, step=None):
 		self.set_range(min, max, step)
-	def xlim(self, min, max, step=None):
-		self.set_range(min, max, step)
 	def label(self, label_str):
-		self.add_axis_label(label_str = label_str)
-	def xlabel(self, label_str):
 		self.add_axis_label(label_str = label_str)
 	def set_tick_locator(self, new_locator: Callable):
 		self.tick_locator = new_locator
@@ -607,17 +603,10 @@ class DataAxes(VGroup):
 		"dynamic": True
 	}
 
-	def __init__(
-		self,
-		x_range: Optional[Sequence[float]] = None,
-		y_range: Optional[Sequence[float]] = None,
-		**kwargs
-	):
+	def __init__(self, **kwargs):
 		super().__init__(**kwargs)
-		if x_range is not None:
-			self.x_range[:len(x_range)] = x_range
-		if y_range is not None:
-			self.y_range[:len(y_range)] = y_range
+		if self.axis_align_towards_zero: 
+			self.axis_config['number_locator'].avoid_zero=True
 
 		self.init_axis()
 
@@ -917,4 +906,5 @@ class DataAxes(VGroup):
 			self.align_axes_towards_zero()
 
 		return self
+	
 	
