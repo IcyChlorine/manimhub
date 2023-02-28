@@ -111,28 +111,8 @@ class TestDataAxes(StarskyScene):
 		os.system('pause')
 	def reset_scene(self):
 		self.restore_state(self.undo_stack[0]);self.update_frame()
-	def test_axis1(self) -> None:
-		axis = self.add(DataAxis(include_numbers=True, formatter = lambda x: x+1912))
-		axis: DataAxis
-		self.axis = axis
 
-	def test_axis_animate(self):
-		axis = self.axis
-		self.play(ApplyMethod(axis.set_range, 0,8, recursive=False))
-		self.play(ApplyMethod(axis.set_range, 90,98, recursive=False))
-
-	def test_axis2(self) -> None:
-		decimal_number_config = {
-			"num_decimal_places": 2,
-			"font_size": 36
-		}
-		axis = self.add(DataAxis(include_numbers=True, decimal_number_config = decimal_number_config))
-		axis: DataAxis
-		self.play(axis.set_range, 5,10.5)
-		self.play(axis.set_range, 9.5,10.5, run_time=3)
-
-
-	def test_axes(self) -> None:
+	def test_axes_1(self) -> None:
 		axes = DataAxes(axis_align_towards_zero=True, x_range=[-4,4])
 		self.add(axes)
 		#axes.add_axis_labels()
@@ -142,41 +122,35 @@ class TestDataAxes(StarskyScene):
 		#TODO: 更完善的测试用例
 
 		#self.play(axes.shift, RIGHT, recursive=True)
-	def test_axes_2(self):
-		xmax = 3; wh_ratio = 3/3; width=6
-		axis_config = {
-			'x_range': [-xmax,xmax], 
-			'include_tip': True
-		}
-		axis = DataAxis(**axis_config)#.to_edge(LEFT, buff=1)
-		axis_copy = axis.copy().shift(DOWN)
 
-		dot = Dot().add_updater(lambda m: m.move_to(axis_copy.n2p(0)))
-		self.add(axis, axis_copy, dot)
-		self.wait(0.5)
-		self.play(axis.animate.shift(RIGHT))
+	def test_axes_2(self):
+		#TODO: 更完善的测试用例
+		raise NotImplementedError()
 
 	def test_plot(self) -> None:
-		axes = self.add(DataAxes())
-		axes: DataAxes
-		#axes.add_axis_labels()
+		decimal_number_config = {"num_decimal_places": 1}
+		x_axis_config = {'decimal_number_config': decimal_number_config}
+		axes = DataAxes(
+			x_range=[-1,2],
+			x_axis_config = x_axis_config
+		)
+		self.add(axes)
+		axes.add_axis_labels()
 		axes.plot(lambda x: x**2, [-1,1])
 		axes.scatter([0,1,2],[0,1,3])
 
 		self.play(axes.x_axis.set_range,-2,2,recursive=True)
+		
 		self.play(axes.x_axis.set_range,0,4,recursive=True)
 		self.play(axes.x_axis.set_range,3,8,recursive=True)
 
 		self.play(axes.x_axis.set_range,0,4,
 				axes.y_axis.set_range,-2,4, recursive=True)
 
-
 	def construct(self) -> None:
-		self.test_test1()
-		#self.test_axis2()
-		#self.test_axes()
+		#self.test_axes_1()
 		#self.test_axes_2()
-		#self.test_plot()
-
+		self.test_plot()
 
 		#self.embed()
+		

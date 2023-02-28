@@ -245,6 +245,16 @@ class DataAxis(VGroup):
 		"""Abbreviation for point_to_number"""
 		return self.point_to_number(point)
 
+	def get_unit_size(self) -> float:
+		return self.unit_size
+	
+	def get_direction(self) -> np.ndarray:
+		#TODO: improve performance by introducing
+		#      some caching mechanism, as this function will
+		#      be frequently called by DataAxes.c2p.
+		start, end = self.line.get_start_and_end()
+		return normalize(end-start)
+
 	# tip
 	def init_tip(self):
 		if self.include_tip:
@@ -259,7 +269,7 @@ class DataAxis(VGroup):
 		self.add(tip) 
 
 	# tick related
-	def _get_unit_size(self) -> float:
+	def _calculate_unit_size(self) -> float:
 		length = self.line.get_length()
 		return length / (self.max - self.min)
 
@@ -477,7 +487,7 @@ class DataAxis(VGroup):
 		self.range=range_new
 		self.min, self.max, self.step = self.range
 
-		self.unit_size = self._get_unit_size()
+		self.unit_size = self._calculate_unit_size()
 
 		if not update_mobjects: return self
 
@@ -585,7 +595,7 @@ class DataAxes(VGroup):
 		"axis_config": {
 			"include_tip": True,
 			#"include_numbers": True #this is according to the above lines
-			"number_locator": SmartTickLocator(avoid_zero=True)
+			"number_locator": SmartTickLocator()
 		},
 		"x_axis_config": {"direction": HORIZONTAL},
 		"y_axis_config": {"direction": VERTICAL},
@@ -675,17 +685,22 @@ class DataAxes(VGroup):
 			if self.axis_align_towards_zero:
 				origin_x = closest_to_zero(self.x_axis.range)
 				origin_y = closest_to_zero(self.y_axis.range)
+		
 		origin = RIGHT*self.x_axis.n2p(origin_x)[XDIM]+UP*self.y_axis.n2p(origin_y)[YDIM]
+		#print(origin)
 		return origin
 
 	def coords_to_point(self, *coords: float) -> np.ndarray:
 		origin = self.get_origin(clip_to_border=False)
 		return origin + sum(
-			axis.number_to_point(coord) - origin
+			axis.get_direction() * coord * axis.get_unit_size()
 			for axis, coord in zip(self.get_axes(), coords)
 		)
+	
 
 	def point_to_coords(self, point: np.ndarray) -> Tuple[float, ...]:
+		# I suspect this func is buggy
+		# TODO: test and debug
 		return tuple([
 			axis.point_to_number(point)
 			for axis in self.get_axes()
@@ -766,6 +781,7 @@ class DataAxes(VGroup):
 		if dynamic: 
 			def update_plot(m):
 				x_range[0] = max(original_x_range[0],self.x_axis.min)
+				#print('xmin: ',x_range[0])
 				x_range[1] = min(original_x_range[1],self.x_axis.max)
 				#print(x_range)
 				if x_range[0]>x_range[1]:
