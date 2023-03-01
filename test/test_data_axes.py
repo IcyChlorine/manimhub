@@ -24,6 +24,7 @@ class TestDataAxis(StarskyScene):
 		axis3.shift(DOWN*2)
 
 		self.add(axis1, axis2, axis3)
+
 	def test_direction(self) -> None:
 		axis1 = DataAxis(direction = VERTICAL, length=FRAME_HEIGHT-2)
 		axis2 = DataAxis(
@@ -52,12 +53,12 @@ class TestDataAxis(StarskyScene):
 		circ = Circle(radius = axis.unit_size)
 		circ.add_updater(lambda m: m.move_to(axis.n2p(0)).set_width(axis.unit_size*2))
 		self.add(axis, circ)
+		
 		self.wait(0.5)
 		self.play(ApplyMethod(axis.scale, 5, run_time=2, rate_func=smooth, recursive=True))
 		self.play(axis.animate.shift(UP*2), recursive=True)
 		self.play(axis.animate.shift(DOWN*4), recursive=True)
-		self.play(axis.animate.shift(UP*2))
-		self.add()
+		self.play(axis.animate.shift(UP*2), recursive=True)
 
 	def test_dynamic_range(self) -> None:
 		axis = DataAxis(

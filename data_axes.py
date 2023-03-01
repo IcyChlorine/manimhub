@@ -214,6 +214,7 @@ class DataAxis(VGroup):
 		self.number_locator = number_locator
 		self.number_formatter = number_formatter
 		self.decimal_number_config = decimal_number_config
+		self.reuse_existing_number_labels = reuse_existing_number_labels
 		self.init_numbers() # numbers at idx 3
 
 		self.include_label = include_label
@@ -535,6 +536,7 @@ class DataAxis(VGroup):
 		min = interpolate(m1.min, m2.min, alpha)
 		max = interpolate(m1.max, m2.max, alpha)
 		step = interpolate(m1.step, m2.step, alpha)
+		
 		if recursive_interp:
 			# 这里的顺序很重要。line.interpolate可能刷新unit_size，从而影响后面的set_range
 			# (which is needed!)
