@@ -163,6 +163,7 @@ class StarskyScene(Scene):
 		if len(new_mobjects)==1: return new_mobjects[0]
 		else: return new_mobjects
 
+	# @legacy
 	def _compile_animations(self, *args, **kwargs):
 		"""
 		Each arg can either be an animation, or a mobject method
@@ -250,38 +251,6 @@ class StarskyScene(Scene):
 
 		return animations
 
-	# 由于装饰器好像不能从父类继承，
-	# 因此这里要再定义一下。
-	def handle_play_like_call(func):
-		@wraps(func)
-		def wrapper(self, *args, **kwargs):
-			if self.inside_embed:
-				self.save_state()
-			if self.presenter_mode and self.num_plays == 0:
-				self.hold_loop()
-
-			self.update_skipping_status()
-			should_write = not self.skip_animations
-			if should_write:
-				self.file_writer.begin_animation()
-
-			if self.window:
-				self.real_animation_start_time = time.time()
-				self.virtual_animation_start_time = self.time
-
-			self.refresh_static_mobjects()
-			func(self, *args, **kwargs)
-
-			if should_write:
-				self.file_writer.end_animation()
-
-			#if self.skip_animations and self.window is not None:
-				# Show some quick frames along the way
-				#self.update_frame(dt=0, ignore_skipping=True)
-
-			self.num_plays += 1
-		return wrapper
-
 	'''
 	@handle_play_like_call
 	def play(self, *play_args, **animation_config):
@@ -295,7 +264,7 @@ class StarskyScene(Scene):
 		self.finish_animations(animations)
 	'''
 
-	def begin_animations(self, animations: Iterable[Animation], reorganize_mobjects=True) -> None:
+	def begin_animations(self, animations: Iterable[Animation], reorganize = True) -> None:
 		for animation in animations:
 			animation.begin()
 			# Anything animated that's not already in the
@@ -303,12 +272,11 @@ class StarskyScene(Scene):
 			# animated mobjects that are in the family of
 			# those on screen, this can result in a restructuring
 			# of the scene.mobjects list, which is usually desired.
-			self.add(animation.mobject, reorganize = reorganize_mobjects)
+			self.add(animation.mobject, reorganize = reorganize)
 
 	#一些小小的魔改
-	#不知道能不能行
-	@handle_play_like_call
 	def wait(self, duration_or_speech: Union[float, str]=1):
+		self.pre_play()
 		if isinstance(duration_or_speech, float) or isinstance(duration_or_speech, int):
 			duration=duration_or_speech
 		else: 
@@ -324,6 +292,7 @@ class StarskyScene(Scene):
 			self.emit_frame()
 
 		self.refresh_static_mobjects()
+		self.post_play()
 		return self
 
 	def narrate(self, words:str):
