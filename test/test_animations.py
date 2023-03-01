@@ -44,7 +44,8 @@ class TestPopup(StarskyScene):
 			self.reset_scene()
 			self.pause()
 	def construct(self) -> None:
-		self.test_counter_example()
+		self.test_popup()
+		#self.test_counter_example()
 
 # Debug 用
 class PointsTracker(VGroup):

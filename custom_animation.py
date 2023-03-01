@@ -8,10 +8,9 @@ from manimhub.custom_rate_func import *
 # alias
 Create = ShowCreation
 class Popup(GrowFromCenter):
-	CONFIG = {
-		'rate_func': braking_end,
-		'clip_alpha': False
-	}
+	def __init__(self, mobject: Mobject, **kwargs):
+		super().__init__(mobject, **kwargs)
+		self.update_rate_info(rate_func=braking_end)
 
 # Transform adds extra points to src. mobj. so it has same #points as tgt. mobj.
 # before interpolating when animation.
@@ -34,15 +33,16 @@ class CleanTransform(Transform):
 
 # Only coarsely tested. May have bugs.
 class TransformByIndexMap(AnimationGroup):
-	CONFIG = {
-		"transform_class": CleanTransform
-	}
+	transform_class = CleanTransform
 	def __init__(self, 
-				mobject: Mobject,
-        		target_mobject: Mobject,
-				keys: Iterable, values: Iterable,
-	 			**kwargs):
-		digest_config(self,kwargs)
+			mobject: Mobject,
+       		target_mobject: Mobject,
+			keys: Iterable, values: Iterable,
+			transform_class: Transform,
+	 		**kwargs
+		):
+		self.transform_class = transform_class
+		super().__init__(mobject, **kwargs)
 
 		assert(len(keys)==len(values))
 		l1,l2=len(mobject),len(target_mobject)
