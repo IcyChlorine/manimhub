@@ -555,7 +555,9 @@ class DataAxis(VGroup):
 			super().interpolate(m1, m2, alpha, *args, **kwargs)
 
 		return self
-
+	
+	# @legacy
+	# use recursive animations instead
 	def interpolate_family(self, m1: VMobject, m2: VMobject, alpha: float, *args, **kwargs):
 		#super().interpolate(m1, m2, alpha, *args, **kwargs)
 		self.line.interpolate(m1.line, m2.line, alpha, *args, **kwargs)
@@ -603,67 +605,63 @@ class DataAxis(VGroup):
 
 
 class DataAxes(VGroup):
-	CONFIG = {
-		"height": FRAME_HEIGHT - 2,
-		"width": FRAME_WIDTH - 2,
+	def __init__(self,
+		height = FRAME_HEIGHT - 2,
+		width = FRAME_WIDTH - 2,
 
-		"x_range": [0, 8],
-		"y_range": [0, 6],
+		x_range = [0, 8],
+		y_range = [0, 6],
 
-		"include_numbers": True,
+		# will be "broadcast" to each axis
+		include_numbers = True,
+		include_tip = True,
+		include_ticks = True,
 
-		"axis_config": {
-			"include_tip": True,
-			#"include_numbers": True #this is according to the above lines
-			"number_locator": SmartTickLocator()
-		},
-		"x_axis_config": {"direction": HORIZONTAL},
-		"y_axis_config": {"direction": VERTICAL},
+		axis_config = dict(
+			number_locator = SmartTickLocator()
+		),
+		x_axis_config = dict(direction = HORIZONTAL),
+		y_axis_config = dict(direction = VERTICAL),
 
 		# still a bit buggy with number labels
-		"axis_align_towards_zero": False,
+		axis_align_towards_zero = False,
 
 		# whether dynamically change structure at interpolate
-		"dynamic": True
-	}
+		dynamic = True,
 
-	def __init__(self, **kwargs):
+		**kwargs
+	):
 		super().__init__(**kwargs)
+		self.axis_align_towards_zero = axis_align_towards_zero
 		if self.axis_align_towards_zero: 
-			self.axis_config['number_locator'].avoid_zero=True
+			axis_config['number_locator'].avoid_zero=True
 
-		self.init_axis()
+		final_axis_config = dict(
+			include_numbers = include_numbers, 
+			include_tip = include_tip,
+			include_ticks = include_ticks,
+			dynamic = dynamic
+		)                                                       # global axis default config
+		self.include_numbers = include_numbers                  # how many properties should be kept track of ?
+		final_axis_config.update(axis_config)                   # global axis custom config
 
-		if self.axis_align_towards_zero: 
-			self.align_axes_towards_zero()
+		x_final_config = {
+			**final_axis_config.copy(),
+			**dict(range=x_range, length=width, label_str='x'), # dim specific axis default config
+			**x_axis_config                                     # dim specific axis custom config
+		}
+		y_final_config = {
+			**final_axis_config.copy(), 
+			**dict(range=y_range, length=height, label_str='y'),
+			**y_axis_config
+		}
 
-		self.center()
-
-		self.plots = VGroup()
-		self.add(self.plots) # plots at idx 2
-
-	def init_axis(self) -> None:
-		x_axis_config = dict()
-		y_axis_config = dict()
-		x_axis_config['range'] = self.x_range
-		y_axis_config['range'] = self.y_range
-		x_axis_config['length'] = self.width
-		y_axis_config['length'] = self.height
-		x_axis_config['label_str'] = 'x'
-		y_axis_config['label_str'] = 'y'
-		for config in [x_axis_config, y_axis_config]:
-			config['include_numbers'] = self.include_numbers
-			config['dynamic'] = self.dynamic
-			config.update(self.axis_config)
-		x_axis_config.update(self.x_axis_config)
-		y_axis_config.update(self.y_axis_config)
-
-		self.x_axis = DataAxis(**x_axis_config) 
-		self.y_axis = DataAxis(**y_axis_config) 
-		self.axes = VGroup(self.x_axis, self.y_axis)
-
+		self.x_axis = DataAxis(**x_final_config)
+		self.y_axis = DataAxis(**y_final_config) 
+		self.axes = VGroup(self.x_axis, self.y_axis) # grouped but not added
 		self.add(self.x_axis, self.y_axis) # x,y_axis at idx 0,1
 
+		# put into position
 		x_axis_shift = ORIGIN - self.x_axis.line.get_start()
 		y_axis_shift = ORIGIN - self.y_axis.line.get_start()
 		# this roughly equals to: 
@@ -671,6 +669,21 @@ class DataAxes(VGroup):
 		# y_axis.next_to(ORIGIN,   UP , buff=0)
 		self.x_axis.shift(x_axis_shift)
 		self.y_axis.shift(y_axis_shift)
+
+		
+		if self.axis_align_towards_zero:
+			self.align_axes_towards_zero()
+
+		self.center()
+
+		self.plots = VGroup()
+		self.add(self.plots) # plots at idx 2
+
+		self.dynamic = dynamic
+
+	# need to be removed
+	def init_axis(self) -> None:
+		pass
 
 	def init_numbers(self):
 		self.x_axis.init_numbers()
@@ -729,7 +742,7 @@ class DataAxes(VGroup):
 		return self.axes 
 
 	def get_all_ranges(self) -> List[Sequence[float]]:
-		return [self.x_range, self.y_range]
+		return [self.x_axis.range, self.y_axis.y_range]
 
 	def align_axes_towards_zero(self):
 		# align y_axis towards zero coord at x_axis
@@ -816,8 +829,8 @@ class DataAxes(VGroup):
 		
 	def scatter(self, X,Y, dynamic=True, attach=True, **dot_kwargs):
 		# handle dot parameters
-		DOT_CONFIG = {'color':YELLOW}
-		dot_kwargs = merge_dicts_recursively(DOT_CONFIG, dot_kwargs)
+		dot_config = dict(fill_color = YELLOW)
+		dot_kwargs = {**dot_config, **dot_kwargs}
 
 		# generate object
 		dots = VGroup(

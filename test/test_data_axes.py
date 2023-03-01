@@ -123,7 +123,7 @@ class TestDataAxes(StarskyScene):
 		self.play(axes.animate.set_all_ranges([-4,4],[-3,3]), recursive=True)
 		#TODO: 更完善的测试用例
 
-		self.play(axes.shift, RIGHT, recursive=True)
+		self.play(axes.animate.shift(RIGHT), recursive=True)
 
 	def test_axes_2(self):
 		axes = DataAxes(
@@ -149,18 +149,18 @@ class TestDataAxes(StarskyScene):
 		axes.plot(lambda x: x**2, [-1,1])
 		axes.scatter([0,1,2],[0,1,3])
 
-		self.play(axes.x_axis.set_range,-2,2,recursive=True)
+		self.play(axes.x_axis.animate.set_range(-2,2),recursive=True)
 		
-		self.play(axes.x_axis.set_range,0,4,recursive=True)
-		self.play(axes.x_axis.set_range,3,8,recursive=True)
+		self.play(axes.x_axis.animate.set_range(0,4),recursive=True)
+		self.play(axes.x_axis.animate.set_range(3,8),recursive=True)
 
-		self.play(axes.x_axis.set_range,0,4,
-				axes.y_axis.set_range,-2,4, recursive=True)
+		self.play(axes.x_axis.animate.set_range(0,4),
+				axes.y_axis.animate.set_range(-2,4), recursive=True)
 
 	def construct(self) -> None:
-		self.test_axes_1()
+		#self.test_axes_1()
 		#self.test_axes_2()
-		#self.test_plot()
+		self.test_plot()
 
 		#self.embed()
 		
