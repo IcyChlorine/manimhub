@@ -31,24 +31,24 @@ class TestLittleCreature(StarskyScene):
 		w=s.w
 		while True:
 			s.pause()
-			s.play(w.change_mood,'smile')
+			s.play(w.animate.change_mood('smile'))
 			s.pause()
-			s.play(w.change_mood,'surprised')
+			s.play(w.animate.change_mood('surprised'))
 			s.pause()
-			s.play(w.change_mood,'happy')
+			s.play(w.animate.change_mood('happy'))
 			s.pause()	
 			s.reset()
 	def test_eye_contact(s):
 		w=s.w
 		while True:
 			s.pause()
-			s.play(w.look,RIGHT)
+			s.play(w.animate.look(RIGHT))
 			s.pause()
-			s.play(w.look,UL*10)
+			s.play(w.animate.look(UL*10))
 			s.pause()
-			s.play(w.look_at,ORIGIN)
+			s.play(w.animate.look_at(ORIGIN))
 			s.pause()
-			s.play(w.make_eye_contact)
+			s.play(w.animate.make_eye_contact())
 
 	def test_comprehensive(s):
 		w=s.w
@@ -56,13 +56,13 @@ class TestLittleCreature(StarskyScene):
 			s.pause()
 			s.play(w.look,RIGHT)
 			s.pause()
-			s.play(w.change_mood,'smile')
+			s.play(w.animate.change_mood('smile'))
 			s.pause()
-			s.play(w.shift,RIGHT*3)
+			s.play(w.animate.shift(RIGHT*3))
 			s.pause()
-			s.play(w.make_eye_contact)
+			s.play(w.animate.make_eye_contact())
 			s.pause()
-			s.play(w.change_mood,'surprised')
+			s.play(w.animate.change_mood('surprised'))
 			s.pause()
 			s.reset()
 			
@@ -75,10 +75,9 @@ class TestLittleCreature(StarskyScene):
 	def construct(self) -> None:
 		w=self.w
 
-		#self.test_mood()
+		self.test_mood()
 		#self.test_eye_contact()
 		#self.test_comprehensive()
-		self.test_blink()
+		#self.test_blink()
 
 		self.embed()
-

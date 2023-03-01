@@ -1,14 +1,16 @@
 from manimlib import *
 
 class LittleCreature(SVGMobject):
-	CONFIG = {
-		'flipped': False,
-		'mood': 'plain',
-		'looking_dir': OUT
-	}
-	def __init__(self, mood='plain', flipped=False, **kwargs):
+	def __init__(self, 
+	    mood = 'plain', 
+		flipped = False, 
+		looking_dir = OUT,
+		**kwargs
+	):
+		self.flipped = False # init as false for super().__init__
 		super().__init__(f'assets/LittleCreature_{mood}.svg', **kwargs)
-		
+		self.mood = 'plain'
+
 		self._name_parts()
 
 		# set styles
@@ -30,7 +32,7 @@ class LittleCreature(SVGMobject):
 		self.flipped=False
 		if flipped: self.flip()
 
-		self.look(self.looking_dir)
+		self.look(looking_dir)
 
 	def _name_parts(self):
 		self.body=self[0]
@@ -95,7 +97,7 @@ class LittleCreature(SVGMobject):
 		return self
 
 	# Magic overrides that fix things.
-
+	
 	def get_shader_wrapper_list(self):
 		# SVGMobject默认会返回两个shader_wrapper, one for fill and one for stroke
 		# 导致所有子路径的fill和stroke分别被一块渲染了，上下层的stroke会相交，无法正确显示重叠关系
@@ -122,13 +124,11 @@ class LittleCreature(SVGMobject):
 		return ret
 
 class Blink(ApplyMethod):
-	CONFIG = {
-		# param ref: Fast: 0.2, Medium: 0.3, Slow: 0.4
-		'run_time': 0.3,
-		'rate_func': there_and_back
-	}
 	def __init__(self, w: LittleCreature, **kwargs):
 		super().__init__(w._blink, **kwargs)
+		# param ref: Fast: 0.2, Medium: 0.3, Slow: 0.4
+		self.update_rate_info(run_time=0.3,rate_func=there_and_back)
+		
 	def finish(self) -> None:
 		super().finish()
 		self.interpolate(0)
