@@ -28,6 +28,7 @@ class TestCrossAndCheck(StarskyScene):
 		self.cross.shift(RIGHT*2)
 		
 		return ret
+		
 	def construct(self) -> None:
 		while True:
 			self.pause()

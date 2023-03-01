@@ -15,28 +15,27 @@ class Cross(SVGMobject):
 # 用于遮挡后面mobj的幕布
 # 用的时候请注意mobj图层顺序——Curtain类本身不保证遮挡关系。
 class Curtain(Rectangle):
-	CONFIG = {
-		'fill_opacity': 1,
-		'fill_color': BG_COLOR,
-		'stroke_width': 0,
-		'stroke_opacity': 0,
+	def __init__(self, 
+	    left = -FRAME_WIDTH /2,
+		right= +FRAME_WIDTH /2,
+		up   = +FRAME_HEIGHT/2,
+		down = -FRAME_HEIGHT/2,
+		scale_factor = 1.0,
+		**kwargs
+	):
+		self.left = left *scale_factor
+		self.right= right*scale_factor
+		self.up   = up   *scale_factor
+		self.down = down *scale_factor
 
-		# effective only 1)when init 2)when lrdu options are not specified
-		'scale_factor': 1.0, 
-		'left': -FRAME_WIDTH/2,
-		'right':+FRAME_WIDTH/2,
-		'up':   +FRAME_HEIGHT/2,
-		'down': -FRAME_HEIGHT/2
-	}
-	def __init__(self, **kwargs):
-		digest_config(self, kwargs)
-		self.left *= self.scale_factor
-		self.right*= self.scale_factor
-		self.up   *= self.scale_factor
-		self.down *= self.scale_factor
-
-		super().__init__(self.right-self.left, self.up-self.down)
-
+		super().__init__(
+			self.right-self.left, self.up-self.down,
+			fill_opacity = 1,
+			fill_color = BG_COLOR,
+			stroke_width = 0,
+			stroke_opacity = 0,
+			**kwargs
+		)
 		self._put_into_place()
 
 	def _put_into_place(self):
