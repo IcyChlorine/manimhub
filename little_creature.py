@@ -104,7 +104,12 @@ class LittleCreature(SVGMobject):
 		# 因此这里重写这一方法，返回所有sub/son的shader_wrapper，这样每个路径就会分开渲染。
 		ret=[]
 		for sub in self:
-			ret+=sub.get_shader_wrapper_list()
+			# seems after the kill_config branch in master
+			# the order of shader_wrapper in the returned list
+			# get reversed, through some unknown mechanism.(TODO: figure out why)
+			# To put stroke on top of fill, need to reverse the
+			# order back.([::-1])
+			ret+=sub.get_shader_wrapper_list()[::-1]
 		return ret
 
 	def interpolate(self, mobject1: VMobject, mobject2: VMobject, alpha: float, *args, **kwargs):
