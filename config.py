@@ -15,8 +15,9 @@ import sys
 import yaml
 
 from manimlib.logger import log
-from manimlib.utils.config_ops import merge_dicts_recursively
+from manimlib.utils.dict_ops import merge_dicts_recursively
 from manimlib.utils.init_config import init_customization
+from manimlib.constants import FRAME_HEIGHT
 
 
 __config_file__ = "custom_config.yml"
@@ -430,6 +431,9 @@ def get_camera_configuration(args, custom_config):
 	camera_config.update({
 		"pixel_width": width,
 		"pixel_height": height,
+		"frame_config": {
+			"frame_shape": ((width / height) * FRAME_HEIGHT, FRAME_HEIGHT),
+		},
 		"fps": fps,
 	})
 

@@ -1,4 +1,5 @@
 from manimlib import *
+from manimlib.window import Window
 # 由于_AnimationBuilder不在manimlib默认的import范围中
 # 因此必须explicitly import一下
 from manimlib.mobject.mobject import _AnimationBuilder
@@ -20,16 +21,43 @@ class RestartScene(Exception):
 	pass
 
 class StarskyScene(Scene):
-	def __init__(self, window = None, **kwargs):
-		digest_config(self, kwargs)
+	def __init__(
+		self, 
+		window: Optional[Window] = None, 
+		window_config: dict = dict(),
+		camera_class: type = Camera,
+		camera_config: dict = dict(),
+		file_writer_config: dict = dict(),
+		skip_animations: bool = False,
+		always_update_mobjects: bool = False,
+		start_at_animation_number: Optional[int] = None,
+		end_at_animation_number: Optional[int] = None,
+		leave_progress_bars: bool = False,
+		preview: bool = True,
+		presenter_mode: bool = False,
+		show_animation_progress: bool = False,
+	):
+		self.skip_animations = skip_animations
+		self.always_update_mobjects = always_update_mobjects
+		self.start_at_animation_number = start_at_animation_number
+		self.end_at_animation_number = end_at_animation_number
+		self.leave_progress_bars = leave_progress_bars
+		self.preview = preview
+		self.presenter_mode = presenter_mode
+		self.show_animation_progress = show_animation_progress
+
+		self.window_config = window_config
+		self.camera_config = camera_config
+		self.camera_class = camera_class
+		self.file_writer_config = file_writer_config
+
 		if self.preview:
-			from manimlib.window import Window
 			if window is None:
 				self.window = Window(scene=self, **self.window_config)
 			else:
 				self.window = window
-				#TODO: fix window.scene dependent stuff in window, if any
-				window.scene=self
+				#TODO: fix window's dependence on scene
+				window.scene = self
 
 			self.set_window_on_top() # put the window on top by default
 
@@ -43,7 +71,7 @@ class StarskyScene(Scene):
 		else:
 			self.window = None
 		
-
+		# Core state of the scene
 		self.camera: Camera = self.camera_class(**self.camera_config)
 		self.file_writer = SceneFileWriter(self, **self.file_writer_config)
 		self.mobjects: list[Mobject] = [self.camera.frame]
@@ -254,6 +282,7 @@ class StarskyScene(Scene):
 			self.num_plays += 1
 		return wrapper
 
+	'''
 	@handle_play_like_call
 	def play(self, *play_args, **animation_config):
 		if len(play_args) == 0:
@@ -264,6 +293,7 @@ class StarskyScene(Scene):
 		self.begin_animations(animations, reorganize_mobjects = animation_config.get('reorganize_mobjects',True))
 		self.progress_through_animations(animations)
 		self.finish_animations(animations)
+	'''
 
 	def begin_animations(self, animations: Iterable[Animation], reorganize_mobjects=True) -> None:
 		for animation in animations:
@@ -328,6 +358,11 @@ class StarskyScene(Scene):
 			print("", end="\r")
 			self.file_writer.ended_with_interrupt = True
 		self.tear_down()
+
+# for test and prototyping
+class EmptyEmbeddedScene(StarskyScene):
+	def construct(self) -> None:
+		self.embed()
 
 class SelectionBox(SurroundingRectangle):
 	def surround(self, mobject, **kwargs):
