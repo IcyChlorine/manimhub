@@ -114,92 +114,115 @@ HORIZONTAL = 0
 VERTICAL = 1
 
 class DataAxis(VGroup):
-	CONFIG = {
+	def __init__(self,
 		# total style
-		"color": GREY_B,
-		"stroke_width": 2,
+		color = GREY_B,
 
 		# length control
-		"range": [-4, 4, 1],
+		range = [-4, 4, 1],
 		# how long is one logic unit, in screen rel unit.
-		"unit_size": 1, 
-		# only one of 'unit_size' and 'width' should be set.
+		unit_size = 1, 
+		# only one of 'unit_size' and 'length' should be set.
 		# If both are specified upon construction, we'll 
-		# stick to width.
-		"length": None, 
+		# stick to length.
+		length = None, 
+
+		# tip related
+		include_tip = False,
+		tip_config = dict(
+			width = 0.25,
+			length = 0.25,
+		),
 
 		# tick related
-		"include_ticks": True,
-		"tick_length": 0.1,
-		"tick_locator": SmartTickLocator(),
+		include_ticks = True,
+		tick_length = 0.1,
+		tick_locator = SmartTickLocator(),
 		
 		# number label related
-		"include_numbers": False,
-		"number_to_line_direction": DOWN,
-		"number_to_line_buff": MED_SMALL_BUFF,
-		"number_locator": None, # the same to tick locator if not specified
-		"formatter": None,
-		"decimal_number_config": {
-			"num_decimal_places": 0,
-			"font_size": 30,
-			"group_with_commas": False
-		},
+		include_numbers = False,
+		number_to_line_direction = DOWN, # this is not tweakable now
+		number_to_line_buff = MED_SMALL_BUFF,
+		number_locator = None, # the same to tick locator if not specified
+		number_formatter = None,
+		decimal_number_config = dict(
+			num_decimal_places = 0,
+			font_size = 30,
+			group_with_commas = False
+		),
 		# When animated, WHETHER reuse old number labels or not.
 		# On by default; If turned off, animations may be slow.
 		# But when doing morphing animations like axes.shift/scale
 		# you may want to turn this off to PREVENT unchanged number labels.
-		"reuse_existing_number_labels": True, 
+		reuse_existing_number_labels = True, 
 		
-		# tip related
-		"include_tip": False,
-		"tip_config": {
-			"width": 0.25,
-			"length": 0.25,
-		},
-
 		# axis label
-		"include_label": False,
-		"label_str": 'x',
-		"label_class": Tex,
-		"label_config": {
-			"color": FML_COLOR
-		},
+		include_label = False,
+		label_str = 'x',
+		label_class = Tex,
+		label_config = dict(
+			color = FML_COLOR
+		),
 
 		# whether dynamically change structure at interpolate
-		"dynamic": True,
+		dynamic = True,
 
 		# direction of axis. can be either HORIZONTAL(0) or VERTICAL(1).
-		"direction": HORIZONTAL
+		direction = HORIZONTAL, 
 
 		# extra notes: 
 		# 'include_ticks', 'include_numbers', 'include_tip' are NOT meant 
 		# to be dynamic. Change them after mobj construction (or interp
 		# between Axis with different values on these properties) at your
 		# own risk.
-	}
+	
+		**kwargs
+	):
 
-	def __init__(self, range: Optional[Sequence[float]] = None, **kwargs):
-		if kwargs.get('direction', DataAxis.CONFIG['direction'])==VERTICAL:
-			DataAxis.CONFIG['number_to_line_direction']=LEFT # override default config
+		if direction==VERTICAL:
+			number_to_line_direction = LEFT # conditional default
 		else:
-			DataAxis.CONFIG['number_to_line_direction']=DOWN
+			number_to_line_direction = DOWN
+		self.direction = direction
 
 		super().__init__(**kwargs)
 
-		if range is None:
-			range = self.range
-		if len(range) == 2:
-			range = [*range, 1]
-		min, max, step = range
-		self.min, self.max, self.step = min, max, step
-
+		# Note: length = unit_size * (max-min)
+		# 因此 length, unit_size, range 之间的关系是“知二求一”，
+		# 即知道其中任何两者便可求出第三者。
+		if len(range) == 2: range = [*range, 1]
+		self.range = range
+		self.min, self.max, self.step = range
+		self.color = color # total color
+		self.unit_size = unit_size
+		self.length = length
 		line = self._create_line()
-		self.add(line);self.line=line # line at idx 0
+		self.add(line); self.line=line # line at idx 0
 
+		self.include_tip = include_tip
+		self.tip_config = tip_config
 		self.init_tip() # tip at idx 1
+
+		self.include_ticks = include_ticks
+		self.tick_length = tick_length
+		self.tick_locator = tick_locator
 		self.init_ticks() # ticks at idx 2
+
+		self.include_numbers = include_numbers
+		self.number_to_line_direction = number_to_line_direction
+		self.number_to_line_buff = number_to_line_buff
+		self.number_locator = number_locator
+		self.number_formatter = number_formatter
+		self.decimal_number_config = decimal_number_config
 		self.init_numbers() # numbers at idx 3
+
+		self.include_label = include_label
+		self.label_str = label_str
+		self.label_class = label_class
+		self.label_config = label_config
 		self.init_label() # label at idx 4
+
+		self.dynamic = dynamic
 		
 	def scale(
 		self, 
@@ -277,13 +300,12 @@ class DataAxis(VGroup):
 		'''计算需要画出的tick位置'''
 		return self.tick_locator(self.min, self.max, self.step, self)
 		
-	def _create_line(self, **line_kwargs) -> Line:
+	def  _create_line(self, **line_kwargs) -> Line:
 		'''Used only in __init__.'''
-		line_config = {
-			'color': self.color,
-			'tip_config': self.tip_config,
-		}
-		final_config = merge_dicts_recursively(line_config, line_kwargs)
+		line_config = dict(
+			color = self.color,
+		)
+		final_config = {**line_config, **line_kwargs}
 
 		if self.length:
 			self.unit_size = self.length/(self.max-self.min)
@@ -370,9 +392,9 @@ class DataAxis(VGroup):
 		buff: Optional[float] = None,
 		**number_config
 	) -> DecimalNumber:
-		number_config = merge_dicts_recursively(
-			self.decimal_number_config, number_config
-		)
+		number_config = {
+			**self.decimal_number_config, **number_config
+		}
 		if direction is None:
 			direction = self.number_to_line_direction
 		if buff is None:
@@ -574,7 +596,7 @@ class DataAxis(VGroup):
 	def set_number_locator(self, new_locator: Callable):
 		self.number_locator = new_locator
 	def set_number_formatter(self, new_formatter: Callable):
-		self.formatter = new_formatter
+		self.number_formatter = new_formatter
 		self.numbers_invalidated = True
 
 
