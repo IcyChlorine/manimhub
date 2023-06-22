@@ -21,6 +21,7 @@ class RestartScene(Exception):
 	pass
 
 class StarskyScene(Scene):
+	
 	def __init__(
 		self, 
 		window: Optional[Window] = None, 
@@ -46,13 +47,13 @@ class StarskyScene(Scene):
 		self.presenter_mode = presenter_mode
 		self.show_animation_progress = show_animation_progress
 
-		self.window_config = window_config
-		self.camera_config = camera_config
+		self.window_config = {**self.default_window_config, **window_config}
+		self.camera_config = {**self.default_camera_config, **camera_config}
 		self.camera_class = camera_class
-		self.file_writer_config = file_writer_config
+		self.file_writer_config = {**self.default_file_writer_config, **file_writer_config}
 
 		if self.preview:
-			if window is None:
+			if window is None: # the first run in a session, create new window
 				self.window = Window(scene=self, **self.window_config)
 			else:
 				self.window = window
@@ -61,11 +62,14 @@ class StarskyScene(Scene):
 
 			self.set_window_on_top() # put the window on top by default
 
+			self.camera_config["window"] = self.window
+
 			self.camera_config["ctx"] = self.window.ctx
 			self.camera_config["fps"] = 30  # Where's that 30 from?
-			if 'size' in self.window_config.keys():
-				self.camera_config["pixel_width"]=self.window_config['size'][0]
-				self.camera_config["pixel_height"]=self.window_config['size'][1]
+			# Needed?
+			#if 'size' in self.window_config.keys():
+			#	self.camera_config["pixel_width"]=self.window_config['size'][0]
+			#	self.camera_config["pixel_height"]=self.window_config['size'][1]
 			self.undo_stack = []
 			self.redo_stack = []
 		else:
@@ -80,7 +84,13 @@ class StarskyScene(Scene):
 		self.time: float = 0
 		self.skip_time: float = 0
 		self.original_skipping_status: bool = self.skip_animations
-		self.checkpoint_states: dict[str, list[tuple[Mobject, Mobject]]] = dict()
+		self.checkpoint_states: dict[str, list[tuple[Mobject,Mobject]]] = dict()
+		self.undo_stack = []
+		self.redo_stack = []
+		
+		self.frame: CameraFrame = self.camera.frame
+
+		self.render_groups: list[Mobject] = []
 
 		if self.start_at_animation_number is not None:
 			self.skip_animations = True
@@ -100,7 +110,7 @@ class StarskyScene(Scene):
 			np.random.seed(self.random_seed)
 
 		# always show animation progress
-		self.show_animation_progress = True 
+		self.show_animation_progress = True
 		
 	def set_window_on_top(self, on_top=True):
 		if sys.platform != 'win32':
@@ -140,6 +150,7 @@ class StarskyScene(Scene):
 
 		return self
 
+	# @Scene.affects_mobject_list
 	def add(self, *new_mobjects: Mobject, reorganize=True) -> Union[Mobject,  Iterable[Mobject]]:
 		"""
 		Mobjects will be displayed, from background to
@@ -291,7 +302,6 @@ class StarskyScene(Scene):
 			self.update_frame(dt)
 			self.emit_frame()
 
-		self.refresh_static_mobjects()
 		self.post_play()
 		return self
 
