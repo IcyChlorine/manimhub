@@ -792,29 +792,34 @@ class DataAxes(VGroup):
 
 	def plot(self, func, x_range, dynamic=True, attach=True, **curve_kwargs) -> ParametricCurve:
 		# handle plot range
+		# - func: math function to plot
+		# - x_range: [xmin,xmax,xres]
+		# 	- xres is optional. 
+		# - dynamic: if set to True, an updater is added to the generated mobj, 
+		#            which redraws the shape of the curve when called.
+		# - attach: whether add the generated curve to DataAxes.plots as a submobj.
+		# - curve_kwargs: other kwargs to be passed to ParametricCurve(...).
 		original_x_range = x_range.copy()
 		x_range[0] = max(x_range[0],self.x_axis.min)
 		x_range[1] = min(x_range[1],self.x_axis.max)
-		if len(x_range)<3: x_range.append(None)
-		x_range[2] = (x_range[1]-x_range[0])/100
+		if len(x_range)<3: # if no x res value specified
+			x_range.append(None)
+			x_range[2] = (x_range[1]-x_range[0])/100 # 100 sample by default
 
+		geo_func = lambda t: self.c2p(t,func(t))
 		# create object
-		curve = ParametricCurve(
-			lambda t: self.c2p(t,func(t)), x_range, **curve_kwargs
-		)
+		curve = ParametricCurve(geo_func, x_range, **curve_kwargs)
 
 		# add updater if specified
 		if dynamic: 
 			def update_plot(m):
+				# calculate range to be actually rendered
 				x_range[0] = max(original_x_range[0],self.x_axis.min)
-				#print('xmin: ',x_range[0])
 				x_range[1] = min(original_x_range[1],self.x_axis.max)
+				if x_range[0]>x_range[1]: x_range[1]=x_range[0]
 				#print(x_range)
-				if x_range[0]>x_range[1]:
-					x_range[1]=x_range[0]
-				new_curve = ParametricCurve(
-					lambda t: self.c2p(t,func(t)), x_range, **curve_kwargs
-				)
+				
+				new_curve = ParametricCurve(geo_func, x_range, **curve_kwargs)
 				m.set_points(new_curve.get_points())
 				m.t_range = x_range
 				return m
