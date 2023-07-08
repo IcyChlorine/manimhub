@@ -1,7 +1,7 @@
 from manimlib import *
 from manimlib.window import Window
 # 由于_AnimationBuilder不在manimlib默认的import范围中
-# 因此必须explicitly import一下
+# 因此必须显式导入
 from manimlib.mobject.mobject import _AnimationBuilder
 
 import sys
@@ -49,6 +49,7 @@ class StarskyScene(Scene):
 
 		self.window_config = {**self.default_window_config, **window_config}
 		self.camera_config = {**self.default_camera_config, **camera_config}
+		
 		self.camera_class = camera_class
 		self.file_writer_config = {**self.default_file_writer_config, **file_writer_config}
 
