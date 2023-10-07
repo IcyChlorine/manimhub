@@ -98,7 +98,6 @@ class SmartTickLocator:
 		if 小数>0.7: tick_step *= 2
 		
 		# 计算[tick_min, tick_max]中的、是tick_step整数倍的数值，作为tick位置
-		x_min, x_max = axis.min, axis.max
 		if axis.include_tip: 
 			x_max -= axis.tip_config['length']/axis.unit_size
 		tick_min =  ceil(x_min/tick_step)*tick_step
@@ -618,7 +617,7 @@ class DataAxes(VGroup):
 		include_ticks = True,
 
 		axis_config = dict(
-			number_locator = SmartTickLocator()
+			#number_locator = SmartTickLocator()
 		),
 		x_axis_config = dict(direction = HORIZONTAL),
 		y_axis_config = dict(direction = VERTICAL),
