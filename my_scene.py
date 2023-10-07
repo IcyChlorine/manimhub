@@ -21,7 +21,6 @@ class RestartScene(Exception):
 	pass
 
 class StarskyScene(Scene):
-	
 	def __init__(
 		self, 
 		window: Optional[Window] = None, 
@@ -77,7 +76,7 @@ class StarskyScene(Scene):
 			self.window = None
 		
 		# Core state of the scene
-		self.camera: Camera = self.camera_class(**self.camera_config)
+		self.camera: Camera = self.camera_class (**self.camera_config)
 		self.file_writer = SceneFileWriter(self, **self.file_writer_config)
 		self.mobjects: list[Mobject] = [self.camera.frame]
 		self.id_to_mobject_map: dict[int, Mobject] = dict()
