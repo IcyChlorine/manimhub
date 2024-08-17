@@ -76,7 +76,7 @@ class StarskyScene(Scene):
 			self.window = None
 		
 		# Core state of the scene
-		self.camera: Camera = self.camera_class (**self.camera_config)
+		self.camera: Camera = self.camera_class(**self.camera_config)
 		self.file_writer = SceneFileWriter(self, **self.file_writer_config)
 		self.mobjects: list[Mobject] = [self.camera.frame]
 		self.id_to_mobject_map: dict[int, Mobject] = dict()
@@ -111,6 +111,14 @@ class StarskyScene(Scene):
 
 		# always show animation progress
 		self.show_animation_progress = True
+		
+		global add, play, wait, narrate, bring_to_front, bring_to_back
+		add = self.add
+		play = self.play
+		wait = self.wait
+		narrate = self.narrate
+		bring_to_front = self.bring_to_front
+		bring_to_back = self.bring_to_back
 		
 	def set_window_on_top(self, on_top=True):
 		if sys.platform != 'win32':
