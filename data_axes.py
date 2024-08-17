@@ -734,6 +734,9 @@ class DataAxes(VGroup):
 	def c2p(self, *coords: float) -> np.ndarray:
 		return self.coords_to_point(*coords)
 
+	def __call__(self, *coords: float) -> np.ndarray:
+		return self.coords_to_point(*coords)
+
 	def p2c(self, point: np.ndarray) -> Tuple[float, ...]:
 		return self.points_to_coords(point)
 
