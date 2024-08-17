@@ -142,7 +142,16 @@ def get_scene_class(scene_class_candidates, config):
 		else:
 			scene_name = get_input()
 	
-	while True:
+	# exact match (we are case-insensitive for scene names)
+	for clz in scene_class_candidates:
+		if clz.__name__.lower() == scene_name.lower():
+			print(f'Scene {clz.__name__} is selected.')
+			# update config
+			config['scene_names']=[clz.__name__]
+			return clz
+
+	# else, use prefix match
+	while True:		
 		potential_sc = list(filter(
 			lambda clz: clz.__name__.lower().startswith(scene_name.lower()),
 			scene_class_candidates
