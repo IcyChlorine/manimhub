@@ -617,7 +617,7 @@ class DataAxes(VGroup):
 		include_ticks = True,
 
 		axis_config = dict(
-			#number_locator = SmartTickLocator()
+			number_locator = SmartTickLocator()
 		),
 		x_axis_config = dict(direction = HORIZONTAL),
 		y_axis_config = dict(direction = VERTICAL),
