@@ -11,7 +11,7 @@ else:
 	log.info('OS platform is not windows, some window manipulation based on Win32 API will not work.')
 
 # 注意manimlib在更新boolean_ops之后也有了一个Union，因此import的时候要注意
-from typing import Union,Optional,Iterable
+from typing import Union,Optional,Iterable,Callable
 
 # 从package内部import的话要采用这样的语法
 # 参考https://stackoverflow.com/questions/16981921/relative-imports-in-python-3
@@ -25,7 +25,6 @@ class StarskyScene(Scene):
 		self, 
 		window: Optional[Window] = None, 
 		window_config: dict = dict(),
-		camera_class: type = Camera,
 		camera_config: dict = dict(),
 		file_writer_config: dict = dict(),
 		skip_animations: bool = False,
@@ -36,6 +35,8 @@ class StarskyScene(Scene):
 		preview: bool = True,
 		presenter_mode: bool = False,
 		show_animation_progress: bool = False,
+		embed_exception_mode: str = "",
+		embed_error_sound: bool = False,
 	):
 		self.skip_animations = skip_animations
 		self.always_update_mobjects = always_update_mobjects
@@ -45,11 +46,13 @@ class StarskyScene(Scene):
 		self.preview = preview
 		self.presenter_mode = presenter_mode
 		self.show_animation_progress = show_animation_progress
+		self.embed_exception_mode = embed_exception_mode
+		self.embed_error_sound = embed_error_sound
 
 		self.window_config = {**self.default_window_config, **window_config}
 		self.camera_config = {**self.default_camera_config, **camera_config}
-		
-		self.camera_class = camera_class
+		for config in self.camera_config, self.window_config:
+			config["samples"] = self.samples
 		self.file_writer_config = {**self.default_file_writer_config, **file_writer_config}
 
 		if self.preview:
@@ -63,22 +66,19 @@ class StarskyScene(Scene):
 			self.set_window_on_top() # put the window on top by default
 
 			self.camera_config["window"] = self.window
-
-			self.camera_config["ctx"] = self.window.ctx
 			self.camera_config["fps"] = 30  # Where's that 30 from?
-			# Needed?
-			#if 'size' in self.window_config.keys():
-			#	self.camera_config["pixel_width"]=self.window_config['size'][0]
-			#	self.camera_config["pixel_height"]=self.window_config['size'][1]
-			self.undo_stack = []
-			self.redo_stack = []
 		else:
 			self.window = None
 		
 		# Core state of the scene
-		self.camera: Camera = self.camera_class(**self.camera_config)
+		self.camera: Camera = Camera(**self.camera_config)
+		self.frame: CameraFrame = self.camera.frame
+		self.frame.reorient(*self.default_frame_orientation)
+		self.frame.make_orientation_default()
+		
 		self.file_writer = SceneFileWriter(self, **self.file_writer_config)
 		self.mobjects: list[Mobject] = [self.camera.frame]
+		self.render_groups: list[Mobject] = []
 		self.id_to_mobject_map: dict[int, Mobject] = dict()
 		self.num_plays: int = 0
 		self.time: float = 0
@@ -88,9 +88,6 @@ class StarskyScene(Scene):
 		self.undo_stack = []
 		self.redo_stack = []
 		
-		self.frame: CameraFrame = self.camera.frame
-
-		self.render_groups: list[Mobject] = []
 
 		if self.start_at_animation_number is not None:
 			self.skip_animations = True
@@ -111,14 +108,6 @@ class StarskyScene(Scene):
 
 		# always show animation progress
 		self.show_animation_progress = True
-		
-		global add, play, wait, narrate, bring_to_front, bring_to_back
-		add = self.add
-		play = self.play
-		wait = self.wait
-		narrate = self.narrate
-		bring_to_front = self.bring_to_front
-		bring_to_back = self.bring_to_back
 		
 	def set_window_on_top(self, on_top=True):
 		if sys.platform != 'win32':
@@ -158,16 +147,24 @@ class StarskyScene(Scene):
 
 		return self
 
-	# @Scene.affects_mobject_list
+	# 魔改版，否则被装饰的函数都会返回Scene对象
+	def affects_mobject_list(func: Callable):
+		@wraps(func)
+		def wrapper(self, *args, **kwargs):
+			res = func(self, *args, **kwargs)
+			self.assemble_render_groups()
+			return res
+		return wrapper
+
+	@affects_mobject_list
 	def add(self, *new_mobjects: Mobject, reorganize=True) -> Union[Mobject,  Iterable[Mobject]]:
 		"""
 		Mobjects will be displayed, from background to
 		foreground in the order with which they are added.
 		"""
-		if not reorganize: 
-			all_sm = self.get_mobject_family_members()
-			new_mobjects = list(filter(lambda m: not m in all_sm, new_mobjects))
-			if new_mobjects == []: return
+		#if not reorganize: 
+		#	all_sm = self.get_mobject_family_members()
+		#	new_mobjects = [m for m in new_mobjects if m not in all_sm]
 			
 		self.remove(*new_mobjects)
 		self.mobjects += new_mobjects
@@ -291,7 +288,8 @@ class StarskyScene(Scene):
 			# animated mobjects that are in the family of
 			# those on screen, this can result in a restructuring
 			# of the scene.mobjects list, which is usually desired.
-			self.add(animation.mobject, reorganize = reorganize)
+			if animation.mobject not in self.mobjects:
+				self.add(animation.mobject, reorganize = reorganize)
 
 	#一些小小的魔改
 	def wait(self, duration_or_speech: Union[float, str]=1):
